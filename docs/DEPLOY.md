@@ -110,8 +110,15 @@ Configure um SMTP antes de abrir para outras pessoas.
    - `TXT` `send` → `v=spf1 include:amazonses.com ~all`.
 3. Espere o Resend mostrar **Verified** (minutos a algumas horas).
 4. **Resend › API Keys › Create API Key:** permissão _Sending access_, domínio
-   `ternal.com.br`. Copie a **Resend API key** (`re_…`); ela só aparece uma vez.
-5. **Supabase › Authentication › Emails › SMTP Settings › Enable custom SMTP:**
+   `ternal.com.br` (ou _All domains_). Copie a **Resend API key** (`re_…`); ela só aparece uma
+   vez. A chave **não depende da verificação** do domínio: pode criá-la antes do Verified e
+   não precisa refazê-la depois. Se _API Keys_ não aparecer no menu do Resend, abra direto
+   https://resend.com/api-keys.
+5. **Supabase › Authentication › Emails › SMTP Settings:** preencha os campos abaixo, mas
+   deixe **Enable custom SMTP DESLIGADO até o Resend mostrar Verified**. Ligado antes, todo
+   e-mail de login falha. Enquanto estiver desligado, o e-mail embutido do Supabase só envia
+   para os membros do projeto. Quando o Verified aparecer, ligue **Enable custom SMTP** e
+   salve.
 
    | Campo        | Valor                        |
    | ------------ | ---------------------------- |
@@ -142,9 +149,15 @@ Opcional: para receber relatórios de entrega, troque o `_dmarc` para
 
 1. https://console.cloud.google.com › seletor de projetos › **New project** › `Elaps`.
 2. **Google Auth Platform › Branding** (tela de consentimento):
-   - App name: `Elaps`. User support email e Developer contact: o seu e-mail.
+   - App name: `Elaps`.
+   - **User support email:** só aceita o e-mail da sua conta Google (ou um Google Group seu).
+     **Developer contact:** livre. Não use `@ternal.com.br` em nenhum dos dois: o domínio não
+     recebe e-mail (MX nulo).
    - App home page: `https://elaps.ternal.com.br`.
-   - Authorized domains: `ternal.com.br` e `supabase.co`.
+   - **Authorized domains:** `ternal.com.br` e `<Project ref>.supabase.co` (o host da
+     _Project URL_, sem `https://`). Não use só `supabase.co`: o Google recusa ("Domínio
+     inválido: precisa ser um domínio privado de nível superior") porque `supabase.co` é um
+     sufixo público.
 3. **Audience:** User type **External**. Depois de testar, **Publish app** (status _In
    production_). Sem isso, só as contas listadas em _Test users_ conseguem entrar. Com os
    escopos padrão (e-mail, perfil, openid) não há revisão do Google.
