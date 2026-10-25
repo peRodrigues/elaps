@@ -1,4 +1,14 @@
-import { BarChart3, Clock, Ellipsis, FolderTree, ListChecks, Settings, Target } from 'lucide-react';
+import {
+  BarChart3,
+  Clock,
+  Ellipsis,
+  FolderTree,
+  ListChecks,
+  Plus,
+  Settings,
+  Target,
+} from 'lucide-react';
+import { useState } from 'react';
 import { NavLink, Outlet, useLocation } from 'react-router';
 import { useTranslation } from 'react-i18next';
 import { ThemeToggle } from '@/components/theme-toggle';
@@ -6,8 +16,10 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import { QuickCreate } from '@/features/groups/quick-create';
 import { useOnline } from '@/lib/online';
 import { cn } from '@/lib/utils';
 
@@ -35,11 +47,12 @@ export function AppLayout() {
   const online = useOnline();
   const { pathname } = useLocation();
   const moreActive = more.some(({ to }) => pathname.startsWith(to));
+  const [quick, setQuick] = useState<'group' | 'area' | null>(null);
   return (
     <div className="flex min-h-dvh flex-col md:flex-row">
-      <aside className="hidden w-60 shrink-0 flex-col gap-6 border-r bg-card p-4 md:flex">
+      <aside className="sticky top-0 hidden h-dvh w-60 shrink-0 flex-col gap-6 self-start overflow-y-auto border-r bg-card p-4 md:flex">
         <span className="px-2 text-lg font-semibold">{t('app.name')}</span>
-        <nav aria-label={t('nav.label')} className="flex flex-1 flex-col gap-1">
+        <nav aria-label={t('nav.label')} className="flex flex-1 flex-col gap-1 overflow-y-auto">
           {items.map(({ to, key, icon: Icon }) => (
             <NavLink
               key={to}
@@ -106,9 +119,19 @@ export function AppLayout() {
                 </NavLink>
               </DropdownMenuItem>
             ))}
+            <DropdownMenuSeparator />
+            <DropdownMenuItem className="gap-3 py-2.5" onSelect={() => setQuick('group')}>
+              <Plus className="size-4" />
+              {t('nav.newGroup')}
+            </DropdownMenuItem>
+            <DropdownMenuItem className="gap-3 py-2.5" onSelect={() => setQuick('area')}>
+              <Plus className="size-4" />
+              {t('nav.newArea')}
+            </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
       </nav>
+      {quick && <QuickCreate kind={quick} onClose={() => setQuick(null)} />}
     </div>
   );
 }

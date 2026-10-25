@@ -20,6 +20,13 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
 import { Skeleton } from '@/components/ui/skeleton';
 import {
   isDuplicateNameError,
@@ -28,6 +35,7 @@ import {
   useSetGroupArchived,
 } from '@/data/catalog';
 import { DeleteDialog, type DeleteTarget } from '@/features/groups/delete-dialog';
+import { QuickCreate } from '@/features/groups/quick-create';
 import { TagsSection } from '@/features/groups/tags-section';
 import { NameDialog, type NameDialogTarget } from '@/features/groups/name-dialog';
 import { cn } from '@/lib/utils';
@@ -56,6 +64,8 @@ export function GroupsPage() {
   const setAreaArchived = useSetAreaArchived();
   const [dialog, setDialog] = useState<Dialog>(null);
   const [showArchived, setShowArchived] = useState(false);
+  const [sheet, setSheet] = useState(false);
+  const [quick, setQuick] = useState<'group' | 'area' | null>(null);
 
   async function toggleArchived(kind: 'group' | 'area', id: string, archived: boolean) {
     try {
@@ -249,6 +259,47 @@ export function GroupsPage() {
       </header>
       {body}
       {!catalog.isPending && <TagsSection />}
+      {catalog.data && (
+        <Button
+          size="icon"
+          aria-label={t('groups.create')}
+          className="fixed right-4 bottom-[calc(5rem+env(safe-area-inset-bottom))] z-20 size-14 rounded-full shadow-lg md:hidden"
+          onClick={() => setSheet(true)}
+        >
+          <Plus className="size-6" />
+        </Button>
+      )}
+      <Dialog open={sheet} onOpenChange={setSheet}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>{t('groups.create')}</DialogTitle>
+            <DialogDescription>{t('groups.createHint')}</DialogDescription>
+          </DialogHeader>
+          <div className="flex flex-col gap-2">
+            <Button
+              size="lg"
+              variant="outline"
+              onClick={() => {
+                setSheet(false);
+                setQuick('group');
+              }}
+            >
+              {t('groups.newGroup')}
+            </Button>
+            <Button
+              size="lg"
+              variant="outline"
+              onClick={() => {
+                setSheet(false);
+                setQuick('area');
+              }}
+            >
+              {t('groups.newArea')}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+      {quick && <QuickCreate kind={quick} onClose={() => setQuick(null)} />}
       {dialog?.type === 'name' && (
         <NameDialog target={dialog.target} onClose={() => setDialog(null)} />
       )}

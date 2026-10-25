@@ -91,15 +91,19 @@ export function useSessionCount(kind: 'group' | 'area', id: string | null) {
   });
 }
 
-function useCatalogMutation<TVars>(
-  fn: (vars: TVars) => PromiseLike<{ error: { code?: string; message: string } | null }>,
+function useCatalogMutation<TVars, TData = null>(
+  fn: (vars: TVars) => PromiseLike<{
+    data?: TData | null;
+    error: { code?: string; message: string } | null;
+  }>,
   { alsoInvalidate = [] as string[] } = {},
 ) {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: async (vars: TVars) => {
-      const { error } = await fn(vars);
+    mutationFn: async (vars: TVars): Promise<TData | null> => {
+      const { data, error } = await fn(vars);
       if (error) throw error;
+      return data ?? null;
     },
     onSettled: () => {
       void queryClient.invalidateQueries({ queryKey: CATALOG_KEY });
@@ -126,8 +130,12 @@ const remove = (table: TableName, id: string) =>
     : supabase.from('areas').delete().eq('id', id);
 
 export const useCreateGroup = () =>
-  useCatalogMutation(({ name, color }: { name: string; color: string }) =>
-    supabase.from('groups').insert({ name, color }),
+  useCatalogMutation<{ name: string; color: string }, Group>(({ name, color }) =>
+    supabase
+      .from('groups')
+      .insert({ name, color })
+      .select('id, user_id, name, color, archived_at')
+      .single(),
   );
 
 export const useUpdateGroup = () =>
@@ -146,8 +154,12 @@ export const useDeleteGroup = () =>
   });
 
 export const useCreateArea = () =>
-  useCatalogMutation(({ groupId, name }: { groupId: string; name: string }) =>
-    supabase.from('areas').insert({ group_id: groupId, name }),
+  useCatalogMutation<{ groupId: string; name: string }, Area>(({ groupId, name }) =>
+    supabase
+      .from('areas')
+      .insert({ group_id: groupId, name })
+      .select('id, user_id, group_id, name, archived_at')
+      .single(),
   );
 
 export const useUpdateArea = () =>

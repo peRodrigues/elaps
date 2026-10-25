@@ -1,5 +1,4 @@
 import { useEffect, useMemo, useState } from 'react';
-import { Link } from 'react-router';
 import { useTranslation } from 'react-i18next';
 import { Pause, Play, SkipForward, Square } from 'lucide-react';
 import { toast } from 'sonner';
@@ -296,11 +295,9 @@ export function TimerPage() {
               )}
             </>
           ) : options.length === 0 ? (
-            <div className="flex flex-col items-start gap-3">
+            <div className="flex flex-col gap-3">
               <p className="text-sm text-muted-foreground">{t('timer.noAreas')}</p>
-              <Button asChild variant="outline">
-                <Link to="/grupos">{t('timer.goToGroups')}</Link>
-              </Button>
+              <AreaPicker options={options} value={areaId} onChange={setSelected} />
             </div>
           ) : (
             <>

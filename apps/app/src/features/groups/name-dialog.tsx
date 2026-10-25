@@ -14,6 +14,13 @@ import {
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import {
   GROUP_COLORS,
   isDuplicateNameError,
   useCreateArea,
@@ -24,10 +31,37 @@ import {
 import { cn } from '@/lib/utils';
 
 export type NameDialogTarget =
-  { kind: 'group'; group?: Group } | { kind: 'area'; group: Group; area?: Area };
+  | { kind: 'group'; group?: Group }
+  | {
+      kind: 'area';
+      /** Grupo fixo (vindo de um card). Sem ele, o diálogo pede o grupo entre `groups`. */
+      group?: Group;
+      groups?: readonly Group[];
+      /** Grupo pré-selecionado quando o diálogo pede o grupo. */
+      defaultGroupId?: string;
+      area?: Area;
+    };
 
-/** Criar ou renomear grupo (com cor) ou área. Remontado a cada abertura (key no pai). */
-export function NameDialog({ target, onClose }: { target: NameDialogTarget; onClose: () => void }) {
+export interface Created {
+  kind: 'group' | 'area';
+  id: string;
+}
+
+/**
+ * Criar ou renomear grupo (com cor) ou área. Remontado a cada abertura (key no pai).
+ * Criando área sem `group` fixo, pede o grupo (`onNewGroup` oferece criar um novo).
+ */
+export function NameDialog({
+  target,
+  onClose,
+  onCreated,
+  onNewGroup,
+}: {
+  target: NameDialogTarget;
+  onClose: () => void;
+  onCreated?: (created: Created, group?: Group) => void;
+  onNewGroup?: () => void;
+}) {
   const { t } = useTranslation();
   const isGroup = target.kind === 'group';
   const existing = isGroup ? target.group : target.area;
@@ -35,6 +69,14 @@ export function NameDialog({ target, onClose }: { target: NameDialogTarget; onCl
   const [name, setName] = useState(existing?.name ?? '');
   const [color, setColor] = useState((isGroup && target.group?.color) || GROUP_COLORS[6]);
   const [error, setError] = useState<string | null>(null);
+  const choices = target.kind === 'area' && !target.group ? (target.groups ?? []) : [];
+  const [groupId, setGroupId] = useState(
+    target.kind === 'area'
+      ? (target.group?.id ?? target.defaultGroupId ?? choices[0]?.id)
+      : undefined,
+  );
+  const areaGroup =
+    target.kind === 'area' ? (target.group ?? choices.find((g) => g.id === groupId)) : undefined;
 
   const createGroup = useCreateGroup();
   const updateGroup = useUpdateGroup();
@@ -52,13 +94,21 @@ export function NameDialog({ target, onClose }: { target: NameDialogTarget; onCl
     }
     try {
       if (target.kind === 'group') {
-        if (target.group)
+        if (target.group) {
           await updateGroup.mutateAsync({ id: target.group.id, name: trimmed, color });
-        else await createGroup.mutateAsync({ name: trimmed, color });
+        } else {
+          const group = await createGroup.mutateAsync({ name: trimmed, color });
+          if (group) onCreated?.({ kind: 'group', id: group.id }, group);
+        }
       } else if (target.area) {
         await updateArea.mutateAsync({ id: target.area.id, name: trimmed });
       } else {
-        await createArea.mutateAsync({ groupId: target.group.id, name: trimmed });
+        if (!areaGroup) {
+          setError(t('groups.form.groupRequired'));
+          return;
+        }
+        const area = await createArea.mutateAsync({ groupId: areaGroup.id, name: trimmed });
+        if (area) onCreated?.({ kind: 'area', id: area.id });
       }
       toast.success(t(existing ? 'groups.toast.saved' : 'groups.toast.created'));
       onClose();
@@ -88,9 +138,40 @@ export function NameDialog({ target, onClose }: { target: NameDialogTarget; onCl
             <DialogDescription>
               {isGroup
                 ? t('groups.empty.body')
-                : t('groups.form.areaIn', { group: target.group.name })}
+                : areaGroup
+                  ? t('groups.form.areaIn', { group: areaGroup.name })
+                  : t('groups.form.areaPickGroup')}
             </DialogDescription>
           </DialogHeader>
+
+          {choices.length > 0 && (
+            <div className="flex flex-col gap-2">
+              <Label htmlFor="area-group">{t('groups.form.groupLabel')}</Label>
+              <Select value={groupId} onValueChange={setGroupId}>
+                <SelectTrigger id="area-group" className="w-full">
+                  <SelectValue placeholder={t('groups.form.groupPlaceholder')} />
+                </SelectTrigger>
+                <SelectContent>
+                  {choices.map((g) => (
+                    <SelectItem key={g.id} value={g.id}>
+                      {g.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              {onNewGroup && (
+                <Button
+                  type="button"
+                  variant="link"
+                  className="h-auto self-start p-0"
+                  disabled={busy}
+                  onClick={onNewGroup}
+                >
+                  {t('groups.form.newGroupInstead')}
+                </Button>
+              )}
+            </div>
+          )}
 
           <div className="flex flex-col gap-2">
             <Label htmlFor="name-field">
