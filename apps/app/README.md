@@ -15,7 +15,7 @@ App web do Elaps (Vite + React). Fala com o Supabase local durante o desenvolvim
 
    | Variável                        | Linha do `supabase status`                       |
    | ------------------------------- | ------------------------------------------------ |
-   | `VITE_SUPABASE_URL`             | `API URL` (`http://127.0.0.1:54321`)             |
+   | `VITE_SUPABASE_URL`             | `API URL` (`http://127.0.0.1:55321`)             |
    | `VITE_SUPABASE_PUBLISHABLE_KEY` | `Publishable key` (começa com `sb_publishable_`) |
 
    O `.env.local` fica fora do git. Nunca use ali a chave secreta (`sb_secret_…`).
@@ -26,7 +26,7 @@ App web do Elaps (Vite + React). Fala com o Supabase local durante o desenvolvim
 
 - Usuário do seed: `dev@elaps.local` (dados de exemplo de 14 dias).
 - Peça o link de acesso em `/entrar`. O e-mail não sai da máquina: abra o Mailpit em
-  http://127.0.0.1:54324 e clique no link **no mesmo navegador** em que pediu (o fluxo PKCE
+  http://127.0.0.1:55324 e clique no link **no mesmo navegador** em que pediu (o fluxo PKCE
   guarda a chave de verificação nele).
 - O botão do Google só funciona depois de configurar as credenciais
   (`supabase/config.toml`, seção `[auth.external.google]`); até lá ele avisa que não está
