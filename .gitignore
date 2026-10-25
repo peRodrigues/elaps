@@ -9,3 +9,5 @@ dev-dist
 .DS_Store
 .evidencias/
 *.tsbuildinfo
+.next
+next-env.d.ts

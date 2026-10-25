@@ -5,7 +5,16 @@ import reactRefresh from 'eslint-plugin-react-refresh';
 import tseslint from 'typescript-eslint';
 
 export default tseslint.config(
-  { ignores: ['**/dist', '**/dev-dist', '**/node_modules', '.evidencias'] },
+  {
+    ignores: [
+      '**/dist',
+      '**/dev-dist',
+      '**/node_modules',
+      '**/.next',
+      '**/next-env.d.ts',
+      '.evidencias',
+    ],
+  },
   {
     extends: [js.configs.recommended, ...tseslint.configs.recommended],
     files: ['**/*.{ts,tsx}'],
@@ -16,4 +25,6 @@ export default tseslint.config(
       'react-refresh/only-export-components': ['warn', { allowConstantExport: true }],
     },
   },
+  // Next.js (apps/site) exporta metadata, revalidate etc. dos arquivos de página.
+  { files: ['apps/site/**'], rules: { 'react-refresh/only-export-components': 'off' } },
 );

@@ -1,0 +1,14 @@
+@import 'tailwindcss';
+
+:root {
+  --ink: #0f172a;
+  --muted: #64748b;
+  --track: #e2e8f0;
+  --card: #f1f5f9;
+}
+
+body {
+  background: #ffffff;
+  color: var(--ink);
+  font-family: system-ui, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+}
