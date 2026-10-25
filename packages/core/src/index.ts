@@ -60,3 +60,17 @@ export {
   type Comparison,
   type PeriodSummary,
 } from './metrics';
+
+export {
+  GOAL_HISTORY_PERIODS,
+  goalPeriodAt,
+  goalPeriods,
+  goalVersionFor,
+  goalProgress,
+  goalsWindow,
+  newVersionEffectiveFrom,
+  type GoalPeriodProgress,
+  type GoalProgress,
+} from './goals';
+
+export { toSharePayload, type SharePayloadV1, type ShareOptions } from './share';
