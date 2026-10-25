@@ -30,12 +30,15 @@ export const ptBR = {
       sentBody:
         'Enviamos um link de acesso para {{email}}. Abra-o neste mesmo navegador para entrar.',
       useAnotherEmail: 'Usar outro e-mail',
+      onlyLatest: 'Só o e-mail mais recente vale: cada novo pedido invalida o anterior.',
     },
     callback: {
       working: 'Entrando…',
       failedTitle: 'Não deu para entrar',
-      failedBody: 'O link pode ter expirado ou já ter sido usado. Peça um novo.',
-      backToLogin: 'Voltar para o login',
+      failedBody: 'Este link já foi usado ou expirou. Use sempre o e-mail mais recente.',
+      failedHint: 'Abra o link no mesmo navegador em que você pediu o acesso.',
+      requestNew: 'Pedir um novo link',
+      requestNewFor: 'Pedir um novo link para {{email}}',
     },
     errors: {
       sendLink: 'Não foi possível enviar o link. Tente de novo em instantes.',

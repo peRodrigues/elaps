@@ -32,12 +32,28 @@ function callbackUrl(next: string): string {
   return url.toString();
 }
 
+const LAST_EMAIL_KEY = 'elaps.lastLoginEmail';
+
+/** E-mail do último pedido de link, para pré-preencher o login depois de um link inválido. */
+export function lastLoginEmail(): string {
+  try {
+    return localStorage.getItem(LAST_EMAIL_KEY) ?? '';
+  } catch {
+    return '';
+  }
+}
+
 export async function sendMagicLink(email: string, next: string) {
   const { error } = await supabase.auth.signInWithOtp({
     email,
     options: { emailRedirectTo: callbackUrl(next) },
   });
   if (error) throw error;
+  try {
+    localStorage.setItem(LAST_EMAIL_KEY, email);
+  } catch {
+    // sem armazenamento: o login só não vem preenchido
+  }
 }
 
 export class ProviderDisabledError extends Error {}

@@ -10,6 +10,7 @@ import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
 import {
   ProviderDisabledError,
+  lastLoginEmail,
   safeNext,
   sendMagicLink,
   signInWithGoogle,
@@ -22,7 +23,7 @@ export function LoginPage() {
   const location = useLocation();
   const next = safeNext((location.state as { from?: string } | null)?.from);
 
-  const [email, setEmail] = useState('');
+  const [email, setEmail] = useState(lastLoginEmail);
   const [sending, setSending] = useState(false);
   const [sentTo, setSentTo] = useState<string | null>(null);
 
@@ -74,6 +75,7 @@ export function LoginPage() {
                 <MailCheck className="size-5 shrink-0 text-muted-foreground" aria-hidden />
                 {t('auth.login.sentBody', { email: sentTo })}
               </p>
+              <p className="text-sm text-muted-foreground">{t('auth.login.onlyLatest')}</p>
               <Button variant="outline" onClick={() => setSentTo(null)}>
                 {t('auth.login.useAnotherEmail')}
               </Button>
