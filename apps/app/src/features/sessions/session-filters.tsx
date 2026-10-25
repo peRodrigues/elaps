@@ -11,6 +11,7 @@ import {
 } from '@/components/ui/select';
 import type { Catalog } from '@/data/catalog';
 import { ColorDot } from '@/features/timer/area-picker';
+import { TagFilter } from '@/features/timer/tag-picker';
 
 export type PeriodChoice = 'all' | 'today' | 'week' | 'month' | 'custom';
 
@@ -21,6 +22,8 @@ export interface FilterState {
   to: string;
   /** 'all', 'g:<id do grupo>' ou 'a:<id da área>'. */
   scope: string;
+  /** Qualquer uma destas tags (vazio = sem filtro). */
+  tagIds: string[];
 }
 
 const PERIODS: PeriodChoice[] = ['all', 'today', 'week', 'month', 'custom'];
@@ -87,6 +90,7 @@ export function SessionFilters({
           </SelectContent>
         </Select>
       </div>
+      <TagFilter value={value.tagIds} onChange={(tagIds) => set({ tagIds })} />
       {value.period === 'custom' && (
         <div className="grid grid-cols-2 gap-3">
           <div className="flex flex-col gap-1.5">

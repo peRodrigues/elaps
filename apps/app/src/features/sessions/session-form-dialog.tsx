@@ -18,6 +18,7 @@ import type { Catalog } from '@/data/catalog';
 import type { SessionInput } from '@/data/sessions';
 import { AreaPicker } from '@/features/timer/area-picker';
 import { pickerGroups } from '@/features/timer/catalog-lookup';
+import { TagPicker } from '@/features/timer/tag-picker';
 import { nextDayKey } from '@/features/sessions/session-time';
 import { formatTime, fromWallTime } from '@/features/timer/time';
 
@@ -30,6 +31,7 @@ interface Fields {
   end: string;
   minutes: string;
   note: string;
+  tagIds: string[];
 }
 
 /**
@@ -38,6 +40,7 @@ interface Fields {
  */
 export function SessionFormDialog({
   session,
+  tagIds,
   catalog,
   recentAreaIds,
   timezone,
@@ -47,6 +50,8 @@ export function SessionFormDialog({
   onSubmit,
 }: {
   session?: Session;
+  /** Tags atuais da sessão (edição). */
+  tagIds?: string[];
   catalog: Catalog;
   recentAreaIds: readonly string[];
   timezone: string;
@@ -68,6 +73,7 @@ export function SessionFormDialog({
         end: session.ended_at ? formatTime(toMs(session.ended_at), timezone) : '',
         minutes: '30',
         note: session.note ?? '',
+        tagIds: tagIds ?? [],
       };
     }
     return {
@@ -77,6 +83,7 @@ export function SessionFormDialog({
       end: '',
       minutes: '30',
       note: '',
+      tagIds: [],
     };
   });
 
@@ -136,6 +143,7 @@ export function SessionFormDialog({
       started_at: toIso(startMs),
       ended_at: toIso(endMs),
       note: fields.note.trim() || null,
+      tag_ids: fields.tagIds,
     });
   }
 
@@ -224,6 +232,11 @@ export function SessionFormDialog({
               value={fields.note}
               onChange={(e) => set({ note: e.target.value })}
             />
+          </div>
+
+          <div className="flex flex-col gap-1.5">
+            <Label>{t('tags.picker.label')}</Label>
+            <TagPicker value={fields.tagIds} onChange={(ids) => set({ tagIds: ids })} />
           </div>
 
           {error && (fields.start || editing) && (

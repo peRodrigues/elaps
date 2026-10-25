@@ -126,10 +126,16 @@ export function TimerPage() {
     setStopping({ at, netMs: result.effect.net_ms, short: result.effect.confirm_discard });
   }
 
-  async function onSave(note: string | null) {
+  async function onSave(note: string | null, tagIds: string[] = []) {
     if (!stopping) return;
     try {
-      await command.mutateAsync({ state, command: { action: 'stop' }, at: stopping.at, note });
+      await command.mutateAsync({
+        state,
+        command: { action: 'stop' },
+        at: stopping.at,
+        note,
+        tagIds,
+      });
       toast.success(t('timer.saved'));
     } catch (error) {
       onError(error as Error);

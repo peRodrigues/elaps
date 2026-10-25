@@ -9,7 +9,7 @@ export interface SessionCsvRow {
   pausedMs: number;
   group: string;
   area: string;
-  /** Vazio por enquanto: as tags entram em outro card. */
+  /** Nomes das tags separados por ', ' (vazio sem tags). */
   tags: string;
   note: string;
   source: 'cronômetro' | 'manual';

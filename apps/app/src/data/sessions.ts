@@ -4,7 +4,8 @@ import {
   useMutation,
   useQueryClient,
 } from '@tanstack/react-query';
-import type { Period, Session, SessionPause } from '@elaps/core';
+import type { Period, Session, SessionPause, SessionTag } from '@elaps/core';
+import { fetchSessionTags, writeSessionTags } from '@/data/tags';
 import { useAuth } from '@/lib/auth';
 import { supabase } from '@/lib/supabase';
 
@@ -35,11 +36,14 @@ export interface SessionFilter {
   period: Period | null;
   /** Restringe a estas áreas (null = todas). */
   areaIds: string[] | null;
+  /** Só sessões que tenham qualquer uma destas tags (null/vazio = todas). */
+  tagIds?: string[] | null;
 }
 
 export interface SessionPage {
   sessions: Session[];
   pauses: SessionPause[];
+  tags: SessionTag[];
   next: number | undefined;
 }
 
@@ -47,27 +51,35 @@ export interface SessionPage {
 export function useSessionList(filter: SessionFilter) {
   const { user } = useAuth();
   const { period, areaIds } = filter;
+  const tagIds = filter.tagIds?.length ? filter.tagIds : null;
   return useInfiniteQuery({
-    queryKey: ['sessions', 'list', period?.start ?? null, period?.end ?? null, areaIds],
+    queryKey: ['sessions', 'list', period?.start ?? null, period?.end ?? null, areaIds, tagIds],
     enabled: !!user,
     initialPageParam: 0,
     // Ao trocar o filtro, a lista anterior fica na tela até a nova chegar.
     placeholderData: keepPreviousData,
     getNextPageParam: (last: SessionPage) => last.next,
     queryFn: async ({ pageParam }): Promise<SessionPage> => {
-      let query = supabase.from('sessions').select(SESSION_COLUMNS);
+      // Com tags, o embed !inner deixa só as sessões que têm alguma delas (uma linha por sessão).
+      const columns = tagIds ? `${SESSION_COLUMNS}, session_tags!inner(tag_id)` : SESSION_COLUMNS;
+      let query = supabase.from('sessions').select(columns as typeof SESSION_COLUMNS);
       if (period) {
         query = query
           .lt('started_at', period.end)
           .or(`ended_at.is.null,ended_at.gt.${period.start}`);
       }
       if (areaIds) query = query.in('area_id', areaIds);
+      if (tagIds) query = query.in('session_tags.tag_id', tagIds);
       const { data, error } = await query
         .order('started_at', { ascending: false })
         .order('id')
         .range(pageParam, pageParam + PAGE_SIZE - 1);
       check(error);
-      const sessions = (data ?? []).map(toSession);
+      const sessions = (data ?? []).map(
+        ({ id, user_id, area_id, started_at, ended_at, source, note }) =>
+          toSession({ id, user_id, area_id, started_at, ended_at, source, note }),
+      );
+      const tags = await fetchSessionTags(sessions.map((x) => x.id));
       let pauses: SessionPause[] = [];
       if (sessions.length > 0) {
         const res = await supabase
@@ -83,6 +95,7 @@ export function useSessionList(filter: SessionFilter) {
       return {
         sessions,
         pauses,
+        tags,
         next: sessions.length === PAGE_SIZE ? pageParam + PAGE_SIZE : undefined,
       };
     },
@@ -94,6 +107,8 @@ export interface SessionInput {
   started_at: string;
   ended_at: string;
   note: string | null;
+  /** Tags da sessão (omitido = não mexe). */
+  tag_ids?: string[];
 }
 
 function useInvalidateSessions() {
@@ -110,11 +125,14 @@ function useInvalidateSessions() {
 export function useCreateManualSession() {
   const invalidate = useInvalidateSessions();
   return useMutation({
-    mutationFn: async (input: SessionInput) => {
-      const { error } = await supabase
+    mutationFn: async ({ tag_ids, ...input }: SessionInput) => {
+      const { data, error } = await supabase
         .from('sessions')
-        .insert({ ...input, note: input.note?.trim() || null, source: 'manual' });
+        .insert({ ...input, note: input.note?.trim() || null, source: 'manual' })
+        .select('id')
+        .single();
       check(error);
+      if (tag_ids?.length) await writeSessionTags(data!.id, tag_ids);
     },
     onSettled: invalidate,
   });
@@ -133,6 +151,7 @@ export function useEditSession() {
         p_note: input.note ?? '',
       });
       check(error);
+      if (input.tag_ids) await writeSessionTags(id, input.tag_ids);
     },
     onSettled: invalidate,
   });

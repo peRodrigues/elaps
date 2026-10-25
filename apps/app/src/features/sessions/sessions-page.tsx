@@ -24,6 +24,7 @@ import {
   useSessionList,
   type SessionInput,
 } from '@/data/sessions';
+import { tagIdsBySession, useTags } from '@/data/tags';
 import { useRecentAreaIds } from '@/data/timer';
 import { useProfile } from '@/lib/profile';
 import { DeleteSessionDialog } from '@/features/sessions/delete-session-dialog';
@@ -67,6 +68,7 @@ export function SessionsPage() {
   const catalog = useCatalog();
   const profile = useProfile();
   const recent = useRecentAreaIds();
+  const tags = useTags();
   const timezone = profile.data?.timezone;
 
   const [filter, setFilter] = useState<FilterState>(() => ({
@@ -74,6 +76,7 @@ export function SessionsPage() {
     from: '',
     to: '',
     scope: 'all',
+    tagIds: [],
   }));
   const [form, setForm] = useState<FormTarget | null>(null);
   const [deleting, setDeleting] = useState<Session | null>(null);
@@ -92,7 +95,12 @@ export function SessionsPage() {
   const list = useSessionList({
     period,
     areaIds: areaIdsOf(filter.scope, catalog.data),
+    tagIds: filter.tagIds,
   });
+  const tagIds = useMemo(
+    () => tagIdsBySession(list.data?.pages.flatMap((p) => p.tags) ?? []),
+    [list.data],
+  );
 
   const create = useCreateManualSession();
   const edit = useEditSession();
@@ -142,9 +150,10 @@ export function SessionsPage() {
     setExporting(true);
     try {
       const result = await exportSessions(
-        { period, areaIds: areaIdsOf(filter.scope, catalog.data) },
+        { period, areaIds: areaIdsOf(filter.scope, catalog.data), tagIds: filter.tagIds },
         timezone,
         lookup,
+        tags.data ?? [],
       );
       if (result.count === 0) {
         toast.info(t('sessions.export.empty'));
@@ -231,6 +240,8 @@ export function SessionsPage() {
                       session={s}
                       pauses={pauses}
                       info={lookup(s.area_id)}
+                      tagIds={tagIds.get(s.id)}
+                      tags={tags.data}
                       now={now}
                       timezone={timezone}
                       onEdit={() => setForm({ kind: 'edit', session: s })}
@@ -258,6 +269,7 @@ export function SessionsPage() {
         <SessionFormDialog
           key={form.kind === 'edit' ? form.session.id : 'add'}
           session={form.kind === 'edit' ? form.session : undefined}
+          tagIds={form.kind === 'edit' ? tagIds.get(form.session.id) : undefined}
           catalog={catalog.data}
           recentAreaIds={recent.data ?? []}
           timezone={timezone}

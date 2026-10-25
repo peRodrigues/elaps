@@ -24,6 +24,7 @@ import {
 } from '@/components/ui/select';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useCatalog } from '@/data/catalog';
+import { tagIdsBySession, useTags } from '@/data/tags';
 import { streakWindow, useDashboardSessions, useStreakSessions } from '@/data/dashboard';
 import { ComparisonCard, dayLabel } from '@/features/dashboard/comparison-card';
 import { DailyChartCard } from '@/features/dashboard/daily-chart-card';
@@ -36,6 +37,8 @@ import {
   type PeriodKind,
 } from '@/features/dashboard/period-picker';
 import { SummaryCards } from '@/features/dashboard/summary-cards';
+import { TagsCard, tagTotals } from '@/features/dashboard/tags-card';
+import { TagFilter } from '@/features/timer/tag-picker';
 import { TotalsCard } from '@/features/dashboard/totals-card';
 import { useProfile } from '@/lib/profile';
 
@@ -63,6 +66,8 @@ export function DashboardPage() {
   const [range, setRange] = useState<DateRange | undefined>();
   const [groupId, setGroupId] = useState(ALL);
   const [areaId, setAreaId] = useState(ALL);
+  const [tagFilter, setTagFilter] = useState<string[]>([]);
+  const tags = useTags();
 
   const todayKey = timezone ? dayKey(now, timezone) : null;
 
@@ -101,11 +106,32 @@ export function DashboardPage() {
     if (!period || !sessions.data || !streakSessions.data || !catalog.data || !histWindow)
       return null;
     const base = { areas: catalog.data.areas, groups: catalog.data.groups, now, filter };
-    const input: MetricsInput = { ...sessions.data, ...base };
-    const streakInput: MetricsInput = { ...streakSessions.data, ...base };
+    // Filtro por tag: só as sessões com alguma das tags entram nas métricas.
+    const idsOf = tagIdsBySession(sessions.data.tags);
+    const kept =
+      tagFilter.length === 0
+        ? sessions.data.sessions
+        : sessions.data.sessions.filter((s) =>
+            idsOf.get(s.id)?.some((id) => tagFilter.includes(id)),
+          );
+    const input: MetricsInput = { sessions: kept, pauses: sessions.data.pauses, ...base };
+    const streakInput: MetricsInput = {
+      sessions: streakSessions.data.sessions,
+      pauses: streakSessions.data.pauses,
+      ...base,
+    };
     const streakSeries = dailySeries(streakInput, histWindow);
     return { input, summary: summarizePeriod(input, period, { streakSeries }) };
-  }, [period, sessions.data, streakSessions.data, catalog.data, histWindow, now, filter]);
+  }, [
+    period,
+    sessions.data,
+    streakSessions.data,
+    catalog.data,
+    histWindow,
+    now,
+    filter,
+    tagFilter,
+  ]);
 
   const rangeLabel = period
     ? period.days === 1
@@ -173,6 +199,9 @@ export function DashboardPage() {
           <ComparisonCard comparison={summary.comparison} lookup={lookup} />
         </div>
         <DailyChartCard input={input} period={summary.period} groups={groups} lookup={lookup} />
+        <TagsCard
+          rows={tagTotals(input, summary.period, tags.data ?? [], sessions.data?.tags ?? [])}
+        />
         <HeatmapCard heatmap={summary.heatmap} />
       </>
     );
@@ -228,6 +257,10 @@ export function DashboardPage() {
             ))}
           </SelectContent>
         </Select>
+      </div>
+
+      <div className="sm:max-w-md">
+        <TagFilter value={tagFilter} onChange={setTagFilter} />
       </div>
 
       {body}

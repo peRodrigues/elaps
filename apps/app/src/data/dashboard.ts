@@ -6,7 +6,9 @@ import {
   type Period,
   type Session,
   type SessionPause,
+  type SessionTag,
 } from '@elaps/core';
+import { fetchSessionTags } from '@/data/tags';
 import { useAuth } from '@/lib/auth';
 import { supabase } from '@/lib/supabase';
 
@@ -23,10 +25,16 @@ export const STREAK_HISTORY_DAYS = 365;
 export interface SessionsWithPauses {
   sessions: Session[];
   pauses: SessionPause[];
+  /** Vínculos com tags (vazio no histórico do streak, que não usa tags). */
+  tags: SessionTag[];
 }
 
 /** Sessões que tocam [start, end): começam antes do fim e terminam depois do início (ou estão abertas). */
-async function fetchTouching(start: string, end: string): Promise<SessionsWithPauses> {
+async function fetchTouching(
+  start: string,
+  end: string,
+  withTags: boolean,
+): Promise<SessionsWithPauses> {
   const sessions: Session[] = [];
   for (let from = 0; ; from += PAGE) {
     const { data, error } = await supabase
@@ -55,7 +63,8 @@ async function fetchTouching(start: string, end: string): Promise<SessionsWithPa
     if (error) throw error;
     pauses.push(...data);
   }
-  return { sessions, pauses };
+  const tags = withTags ? await fetchSessionTags(sessions.map((s) => s.id)) : [];
+  return { sessions, pauses, tags };
 }
 
 /** Sessões do período e do período anterior de mesmo tamanho (para a comparação). */
@@ -65,7 +74,7 @@ export function useDashboardSessions(period: Period | null) {
     queryKey: ['sessions', 'dashboard', 'period', period?.start, period?.end, period?.timezone],
     enabled: !!user && !!period,
     refetchOnWindowFocus: 'always',
-    queryFn: () => fetchTouching(previousPeriod(period!).start, period!.end),
+    queryFn: () => fetchTouching(previousPeriod(period!).start, period!.end, true),
   });
 }
 
@@ -89,6 +98,6 @@ export function useStreakSessions(window: Period | null) {
     ],
     enabled: !!user && !!window,
     refetchOnWindowFocus: 'always',
-    queryFn: () => fetchTouching(window!.start, window!.end),
+    queryFn: () => fetchTouching(window!.start, window!.end, false),
   });
 }

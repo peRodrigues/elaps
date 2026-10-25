@@ -11,7 +11,9 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { ColorDot } from '@/features/timer/area-picker';
+import type { Tag } from '@elaps/core';
 import type { AreaInfo } from '@/features/timer/catalog-lookup';
+import { TagChips } from '@/features/timer/tag-picker';
 import { formatDuration } from '@/features/timer/time';
 import { timeRange } from '@/features/sessions/session-time';
 
@@ -19,6 +21,8 @@ export function SessionItem({
   session,
   pauses,
   info,
+  tagIds,
+  tags,
   now,
   timezone,
   onEdit,
@@ -27,6 +31,8 @@ export function SessionItem({
   session: Session;
   pauses: SessionPause[];
   info: AreaInfo | undefined;
+  tagIds: string[] | undefined;
+  tags: Tag[] | undefined;
   now: number;
   timezone: string;
   onEdit: () => void;
@@ -64,6 +70,7 @@ export function SessionItem({
             ` · ${t('sessions.paused', { duration: formatDuration(paused, t) })}`}
         </p>
         {session.note && <p className="pl-4.5 text-sm break-words">{session.note}</p>}
+        <TagChips tagIds={tagIds} tags={tags} className="pl-4.5" />
       </div>
       <span className="pt-0.5 text-sm tabular-nums">{formatDuration(net, t)}</span>
       {active ? (

@@ -5,8 +5,10 @@ import {
   type Period,
   type Session,
   type SessionPause,
+  type Tag,
 } from '@elaps/core';
 import { buildSessionsCsv, csvBlob, csvFileName, type SessionCsvRow } from '@/lib/csv-sessions';
+import { fetchSessionTags, tagIdsBySession, tagsOf } from '@/data/tags';
 import { supabase } from '@/lib/supabase';
 import type { AreaInfo } from '@/features/timer/catalog-lookup';
 
@@ -15,28 +17,40 @@ const EXPORT_PAGE = 500;
 export interface ExportFilter {
   period: Period | null;
   areaIds: string[] | null;
+  /** Qualquer uma destas tags (vazio = sem filtro). */
+  tagIds?: string[];
 }
 
 /** Todas as sessões encerradas do filtro (todas as páginas), da mais antiga à mais recente. */
-async function fetchAll({ period, areaIds }: ExportFilter) {
+async function fetchAll({ period, areaIds, tagIds }: ExportFilter) {
+  const withTags = tagIds && tagIds.length > 0 ? tagIds : null;
   const sessions: Session[] = [];
   const pauses: SessionPause[] = [];
   for (let from = 0; ; from += EXPORT_PAGE) {
+    const columns = 'id, user_id, area_id, started_at, ended_at, source, note';
     let query = supabase
       .from('sessions')
-      .select('id, user_id, area_id, started_at, ended_at, source, note')
+      .select((withTags ? `${columns}, session_tags!inner(tag_id)` : columns) as typeof columns)
       .not('ended_at', 'is', null);
     if (period) query = query.lt('started_at', period.end).gt('ended_at', period.start);
     if (areaIds) query = query.in('area_id', areaIds);
+    if (withTags) query = query.in('session_tags.tag_id', withTags);
     const { data, error } = await query
       .order('started_at', { ascending: true })
       .order('id')
       .range(from, from + EXPORT_PAGE - 1);
     if (error) throw new Error(error.message);
-    const page = (data ?? []).map((row): Session => ({
-      ...row,
-      source: row.source === 'manual' ? 'manual' : 'timer',
-    }));
+    const page = (data ?? []).map(
+      ({ id, user_id, area_id, started_at, ended_at, source, note }): Session => ({
+        id,
+        user_id,
+        area_id,
+        started_at,
+        ended_at,
+        note,
+        source: source === 'manual' ? 'manual' : 'timer',
+      }),
+    );
     sessions.push(...page);
     for (let i = 0; i < page.length; i += 100) {
       const res = await supabase
@@ -64,8 +78,10 @@ export async function exportSessions(
   filter: ExportFilter,
   timezone: string,
   lookup: (areaId: string) => AreaInfo | undefined,
+  tags: readonly Tag[],
 ): Promise<SessionsExport> {
   const { sessions, pauses } = await fetchAll(filter);
+  const tagIdsOf = tagIdsBySession(await fetchSessionTags(sessions.map((s) => s.id)));
   const rows: SessionCsvRow[] = sessions.map((s) => {
     const startMs = toMs(s.started_at);
     const endMs = toMs(s.ended_at!);
@@ -78,7 +94,9 @@ export async function exportSessions(
       pausedMs: endMs - startMs - netMs,
       group: info?.group?.name ?? '',
       area: info?.area.name ?? '',
-      tags: '',
+      tags: tagsOf(tagIdsOf.get(s.id) ?? [], tags)
+        .map((tag) => tag.name)
+        .join(', '),
       note: s.note ?? '',
       source: s.source === 'manual' ? 'manual' : 'cronômetro',
     };

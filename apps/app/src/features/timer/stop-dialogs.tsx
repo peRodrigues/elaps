@@ -21,6 +21,7 @@ import {
 } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
+import { TagPicker } from '@/features/timer/tag-picker';
 import { formatDuration } from '@/features/timer/time';
 
 /** Parar com tempo ≥ 1 min: nota opcional e Salvar. */
@@ -37,10 +38,11 @@ export function StopDialog({
   netMs: number;
   busy: boolean;
   onCancel: () => void;
-  onSave: (note: string | null) => void;
+  onSave: (note: string | null, tagIds: string[]) => void;
 }) {
   const { t } = useTranslation();
   const [note, setNote] = useState('');
+  const [tagIds, setTagIds] = useState<string[]>([]);
   return (
     <Dialog open={open} onOpenChange={(next) => !next && onCancel()}>
       <DialogContent>
@@ -48,7 +50,7 @@ export function StopDialog({
           className="flex flex-col gap-4"
           onSubmit={(e) => {
             e.preventDefault();
-            onSave(note.trim() || null);
+            onSave(note.trim() || null, tagIds);
           }}
         >
           <DialogHeader>
@@ -69,6 +71,10 @@ export function StopDialog({
               value={note}
               onChange={(e) => setNote(e.target.value)}
             />
+          </div>
+          <div className="flex flex-col gap-2">
+            <Label>{t('tags.picker.label')}</Label>
+            <TagPicker value={tagIds} onChange={setTagIds} />
           </div>
           <DialogFooter>
             <Button type="button" variant="outline" onClick={onCancel}>

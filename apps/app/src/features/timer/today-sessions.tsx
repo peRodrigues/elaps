@@ -1,6 +1,8 @@
 import { useTranslation } from 'react-i18next';
 import { netDurationMs, toMs } from '@elaps/core';
+import { tagIdsBySession, useTags } from '@/data/tags';
 import type { SessionsWithPauses } from '@/data/timer';
+import { TagChips } from '@/features/timer/tag-picker';
 import { ColorDot } from '@/features/timer/area-picker';
 import type { AreaInfo } from '@/features/timer/catalog-lookup';
 import { formatDuration, formatTime } from '@/features/timer/time';
@@ -20,6 +22,8 @@ export function TodaySessions({
   lookup: (areaId: string) => AreaInfo | undefined;
 }) {
   const { t } = useTranslation();
+  const tags = useTags();
+  const tagIds = tagIdsBySession(data.tags);
   return (
     <section aria-labelledby="today-title" className="flex flex-col gap-3">
       <div className="flex items-baseline justify-between gap-4">
@@ -58,6 +62,7 @@ export function TodaySessions({
                   {start} – {end}
                 </p>
                 {session.note && <p className="pl-4.5 text-sm">{session.note}</p>}
+                <TagChips tagIds={tagIds.get(session.id)} tags={tags.data} className="pl-4.5" />
               </li>
             );
           })}

@@ -7,10 +7,12 @@ import {
   todayPeriod,
   type Session,
   type SessionPause,
+  type SessionTag,
   type TimerCommand,
   type TimerEffect,
   type TimerState,
 } from '@elaps/core';
+import { fetchSessionTags, writeSessionTags } from '@/data/tags';
 import { useAuth } from '@/lib/auth';
 import { supabase } from '@/lib/supabase';
 
@@ -79,6 +81,7 @@ export function useTimer() {
 export interface SessionsWithPauses {
   sessions: Session[];
   pauses: SessionPause[];
+  tags: SessionTag[];
 }
 
 /** Sessões que tocam o dia de `now` no fuso do perfil (inclui a ativa). */
@@ -98,7 +101,8 @@ export function useTodaySessions(timezone: string | undefined, now: number) {
         .order('started_at', { ascending: false });
       check(error);
       const sessions = (data ?? []).map(toSession);
-      return { sessions, pauses: await fetchPauses(sessions.map((s) => s.id)) };
+      const ids = sessions.map((s) => s.id);
+      return { sessions, pauses: await fetchPauses(ids), tags: await fetchSessionTags(ids) };
     },
   });
 }
@@ -125,7 +129,7 @@ export function useRecentAreaIds() {
 // Escrita
 // ---------------------------------------------------------------------------
 
-async function persist(effect: TimerEffect, note: string | null) {
+async function persist(effect: TimerEffect, note: string | null, tagIds: readonly string[]) {
   switch (effect.type) {
     case 'create_session': {
       const { error } = await supabase.from('sessions').insert(effect.session);
@@ -156,6 +160,7 @@ async function persist(effect: TimerEffect, note: string | null) {
         .select('id');
       check(error);
       if (!data?.length) throw new TimerConflictError('sessão já encerrada');
+      if (tagIds.length > 0) await writeSessionTags(effect.session_id, tagIds);
     }
   }
 }
@@ -175,16 +180,18 @@ export interface TimerCommandInput {
   /** Instante da ação (ao parar: o clique em Parar, não o Salvar do diálogo). */
   at: number;
   note?: string | null;
+  /** Tags da sessão ao parar. */
+  tagIds?: string[];
 }
 
 /** Aplica iniciar/pausar/retomar/parar. Transição inválida = conflito. */
 export function useTimerCommand() {
   const invalidate = useInvalidateTimer();
   return useMutation({
-    mutationFn: async ({ state, command, at, note = null }: TimerCommandInput) => {
+    mutationFn: async ({ state, command, at, note = null, tagIds = [] }: TimerCommandInput) => {
       const result = applyTimerCommand(state, command, at);
       if (!result.ok) throw new TimerConflictError(result.error.code);
-      await persist(result.effect, note);
+      await persist(result.effect, note, tagIds);
     },
     onSettled: invalidate,
   });

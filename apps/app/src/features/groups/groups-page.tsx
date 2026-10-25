@@ -28,6 +28,7 @@ import {
   useSetGroupArchived,
 } from '@/data/catalog';
 import { DeleteDialog, type DeleteTarget } from '@/features/groups/delete-dialog';
+import { TagsSection } from '@/features/groups/tags-section';
 import { NameDialog, type NameDialogTarget } from '@/features/groups/name-dialog';
 import { cn } from '@/lib/utils';
 
@@ -247,6 +248,7 @@ export function GroupsPage() {
         )}
       </header>
       {body}
+      {!catalog.isPending && <TagsSection />}
       {dialog?.type === 'name' && (
         <NameDialog target={dialog.target} onClose={() => setDialog(null)} />
       )}
