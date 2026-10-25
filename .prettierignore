@@ -1,0 +1,9 @@
+node_modules
+dist
+dev-dist
+package-lock.json
+.evidencias
+CLAUDE.local.md
+PLANO.md
+FILA.md
+guide.md
