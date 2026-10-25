@@ -6,7 +6,12 @@ export const ptBR = {
     groups: 'Grupos',
     dashboard: 'Dashboard',
     settings: 'Ajustes',
+    goals: 'Metas',
+    more: 'Mais',
     label: 'Navegação principal',
+  },
+  goals: {
+    placeholder: { title: 'Metas', body: 'Em breve' },
   },
   pages: {
     timer: { title: 'Cronômetro' },
@@ -194,6 +199,14 @@ export const ptBR = {
   sessions: {
     title: 'Sessões',
     add: 'Lançar manual',
+    export: {
+      button: 'Exportar CSV',
+      exporting: 'Exportando…',
+      done_other: '{{count}} sessões exportadas.',
+      done_one: '{{count}} sessão exportada.',
+      empty: 'Nenhuma sessão encerrada para exportar neste filtro.',
+      error: 'Não foi possível exportar. Tente de novo.',
+    },
     filters: {
       period: 'Período',
       all: 'Tudo',

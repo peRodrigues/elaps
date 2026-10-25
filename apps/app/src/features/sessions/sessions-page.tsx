@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Plus } from 'lucide-react';
+import { Download, Plus } from 'lucide-react';
 import { toast } from 'sonner';
 import {
   customPeriod,
@@ -27,6 +27,7 @@ import {
 import { useRecentAreaIds } from '@/data/timer';
 import { useProfile } from '@/lib/profile';
 import { DeleteSessionDialog } from '@/features/sessions/delete-session-dialog';
+import { downloadFile, exportSessions } from '@/features/sessions/export-sessions';
 import { SessionFilters, type FilterState } from '@/features/sessions/session-filters';
 import { SessionFormDialog } from '@/features/sessions/session-form-dialog';
 import { SessionItem } from '@/features/sessions/session-item';
@@ -76,6 +77,7 @@ export function SessionsPage() {
   }));
   const [form, setForm] = useState<FormTarget | null>(null);
   const [deleting, setDeleting] = useState<Session | null>(null);
+  const [exporting, setExporting] = useState(false);
 
   // Período personalizado começa na semana atual.
   function changeFilter(next: FilterState) {
@@ -135,6 +137,28 @@ export function SessionsPage() {
     }
   }
 
+  async function onExport() {
+    if (!timezone) return;
+    setExporting(true);
+    try {
+      const result = await exportSessions(
+        { period, areaIds: areaIdsOf(filter.scope, catalog.data) },
+        timezone,
+        lookup,
+      );
+      if (result.count === 0) {
+        toast.info(t('sessions.export.empty'));
+      } else {
+        downloadFile(result.blob, result.fileName);
+        toast.success(t('sessions.export.done', { count: result.count }));
+      }
+    } catch {
+      toast.error(t('sessions.export.error'));
+    } finally {
+      setExporting(false);
+    }
+  }
+
   async function onDelete() {
     if (!deleting) return;
     try {
@@ -160,9 +184,14 @@ export function SessionsPage() {
     <div className="mx-auto flex w-full max-w-2xl flex-col gap-6">
       <div className="flex items-center justify-between gap-3">
         <h1 className="text-2xl font-semibold">{t('sessions.title')}</h1>
-        <Button onClick={() => setForm({ kind: 'add' })}>
-          <Plus /> {t('sessions.add')}
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button variant="outline" disabled={exporting} onClick={onExport}>
+            <Download /> {exporting ? t('sessions.export.exporting') : t('sessions.export.button')}
+          </Button>
+          <Button onClick={() => setForm({ kind: 'add' })}>
+            <Plus /> {t('sessions.add')}
+          </Button>
+        </div>
       </div>
 
       <SessionFilters value={filter} onChange={changeFilter} catalog={catalog.data} />
