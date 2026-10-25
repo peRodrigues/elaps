@@ -142,7 +142,7 @@ export const useSetGroupArchived = () =>
 
 export const useDeleteGroup = () =>
   useCatalogMutation((id: string) => remove('groups', id), {
-    alsoInvalidate: ['sessions', 'timer'],
+    alsoInvalidate: ['sessions', 'timer', 'goals'],
   });
 
 export const useCreateArea = () =>
@@ -160,5 +160,5 @@ export const useSetAreaArchived = () =>
 
 export const useDeleteArea = () =>
   useCatalogMutation((id: string) => remove('areas', id), {
-    alsoInvalidate: ['sessions', 'timer'],
+    alsoInvalidate: ['sessions', 'timer', 'goals'],
   });
