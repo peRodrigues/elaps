@@ -2,6 +2,7 @@ import { BarChart3, Clock, FolderTree, ListChecks, Settings } from 'lucide-react
 import { NavLink, Outlet } from 'react-router';
 import { useTranslation } from 'react-i18next';
 import { ThemeToggle } from '@/components/theme-toggle';
+import { useOnline } from '@/lib/online';
 import { cn } from '@/lib/utils';
 
 const items = [
@@ -14,6 +15,7 @@ const items = [
 
 export function AppLayout() {
   const { t } = useTranslation();
+  const online = useOnline();
   return (
     <div className="flex min-h-dvh flex-col md:flex-row">
       <aside className="hidden w-60 shrink-0 flex-col gap-6 border-r bg-card p-4 md:flex">
@@ -45,6 +47,14 @@ export function AppLayout() {
       </header>
 
       <main className="flex-1 p-4 pb-24 md:p-8 md:pb-8">
+        {!online && (
+          <p
+            role="status"
+            className="mb-4 rounded-md bg-muted px-3 py-1.5 text-center text-sm text-muted-foreground"
+          >
+            {t('settings.offline')}
+          </p>
+        )}
         <Outlet />
       </main>
 
