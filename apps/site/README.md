@@ -25,21 +25,7 @@ Scripts: `npm run dev|build|start -w apps/site` (porta 3000).
 
 ## Deploy
 
-Projeto **separado** do app na Vercel:
-
-1. Importe o repositório com **Root Directory** `apps/site` (framework Next.js; deixe a opção de
-   incluir arquivos fora do Root Directory ligada, porque o site usa o workspace
-   `@elaps/core`). Instalação e build: os padrões (`npm install` / `next build`).
-2. Variáveis de ambiente (Production e Preview):
-
-   | Variável                               | Valor                                                |
-   | -------------------------------------- | ---------------------------------------------------- |
-   | `NEXT_PUBLIC_SUPABASE_URL`             | URL do projeto Supabase de produção (`elaps-prod`)   |
-   | `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | chave publishable de produção (nunca a `sb_secret_`) |
-   | `NEXT_PUBLIC_SITE_URL`                 | `https://<domínio do site>` (base do `og:image`)     |
-   | `NEXT_PUBLIC_APP_URL`                  | URL do app (`https://app.<domínio>`)                 |
-
-3. Domínio sugerido para os links: o domínio raiz do usuário (`https://<domínio>/s/<token>`),
-   deixando o app em um subdomínio (`app.<domínio>`). No app, defina `VITE_SHARE_BASE_URL` com o
-   domínio do site; a URL do link fica `<base>/s/<token>`.
-4. A RPC `get_share` precisa existir no banco de produção (migração v2 aplicada).
+Projeto separado do app na Vercel, em https://share.elaps.ternal.com.br (os links ficam
+`/s/<token>`): siga o [guia de produção](../../docs/DEPLOY.md), passo 5. O
+`apps/site/vercel.json` instala e builda a partir da raiz do monorepo (o site usa
+`@elaps/core`). A RPC `get_share` vem das migrações aplicadas no passo 2.
