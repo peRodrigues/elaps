@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router';
+import { Share2 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import type { DateRange } from 'react-day-picker';
 import {
@@ -28,6 +29,7 @@ import { tagIdsBySession, useTags } from '@/data/tags';
 import { streakWindow, useDashboardSessions, useStreakSessions } from '@/data/dashboard';
 import { ComparisonCard, dayLabel } from '@/features/dashboard/comparison-card';
 import { DailyChartCard } from '@/features/dashboard/daily-chart-card';
+import { GoalsCard } from '@/features/dashboard/goals-card';
 import { HeatmapCard } from '@/features/dashboard/heatmap-card';
 import { useLookup } from '@/features/dashboard/lookup';
 import {
@@ -40,6 +42,7 @@ import { SummaryCards } from '@/features/dashboard/summary-cards';
 import { TagsCard, tagTotals } from '@/features/dashboard/tags-card';
 import { TagFilter } from '@/features/timer/tag-picker';
 import { TotalsCard } from '@/features/dashboard/totals-card';
+import { ShareDialog } from '@/features/share/share-dialog';
 import { useProfile } from '@/lib/profile';
 
 const ALL = 'all';
@@ -66,6 +69,7 @@ export function DashboardPage() {
   const [range, setRange] = useState<DateRange | undefined>();
   const [groupId, setGroupId] = useState(ALL);
   const [areaId, setAreaId] = useState(ALL);
+  const [sharing, setSharing] = useState(false);
   const [tagFilter, setTagFilter] = useState<string[]>([]);
   const tags = useTags();
 
@@ -194,6 +198,10 @@ export function DashboardPage() {
     body = (
       <>
         <SummaryCards summary={summary} />
+        <GoalsCard
+          kind={kind === 'custom' ? 'custom' : summary.period.kind}
+          period={summary.period}
+        />
         <div className="grid gap-4 lg:grid-cols-2">
           <TotalsCard totals={summary.totals} lookup={lookup} />
           <ComparisonCard comparison={summary.comparison} lookup={lookup} />
@@ -209,7 +217,16 @@ export function DashboardPage() {
 
   return (
     <div className="mx-auto flex w-full max-w-5xl flex-col gap-4">
-      <h1 className="text-2xl font-semibold">{t('pages.dashboard.title')}</h1>
+      <div className="flex items-center justify-between gap-3">
+        <h1 className="text-2xl font-semibold">{t('pages.dashboard.title')}</h1>
+        <Button
+          variant="outline"
+          disabled={!view || view.summary.totals.total_ms === 0}
+          onClick={() => setSharing(true)}
+        >
+          <Share2 /> {t('share.button')}
+        </Button>
+      </div>
 
       <PeriodPicker
         kind={kind}
@@ -264,6 +281,21 @@ export function DashboardPage() {
       </div>
 
       {body}
+      {sharing && view && catalog.data && period && (
+        <ShareDialog
+          summary={view.summary}
+          catalog={catalog.data}
+          label={
+            period.days === 1
+              ? t('share.label.day', { day: dayLabel(period.first_day) })
+              : t(period.kind === 'week' ? 'share.label.week' : 'share.label.range', {
+                  from: dayLabel(period.first_day),
+                  to: dayLabel(period.last_day),
+                })
+          }
+          onClose={() => setSharing(false)}
+        />
+      )}
     </div>
   );
 }

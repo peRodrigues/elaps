@@ -20,6 +20,9 @@ App web do Elaps (Vite + React). Fala com o Supabase local durante o desenvolvim
 
    O `.env.local` fica fora do git. Nunca use ali a chave secreta (`sb_secret_…`).
 
+   `VITE_SHARE_BASE_URL` (opcional, padrão `http://localhost:3000`) é o site que mostra os
+   links públicos do botão Compartilhar do Dashboard: a URL é `<base>/s/<token>`.
+
 3. Rode o app: `npm run dev` na raiz e abra http://localhost:5173.
 
 ## Entrar localmente

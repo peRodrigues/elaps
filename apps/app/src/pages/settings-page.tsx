@@ -7,6 +7,8 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { SharesSection } from '@/features/share/shares-section';
+import { PomodoroSettingsForm } from '@/features/timer/pomodoro-settings';
 import { signOut, useAuth } from '@/lib/auth';
 import { useInstallPrompt } from '@/lib/install';
 import { useProfile, useUpdateProfile } from '@/lib/profile';
@@ -181,6 +183,10 @@ export function SettingsPage() {
         </div>
       </Section>
 
+      <Section title={t('settings.pomodoro.title')} hint={t('settings.pomodoro.hint')}>
+        <PomodoroSettingsForm />
+      </Section>
+
       {install && (
         <Section title={t('settings.install.title')} hint={t('settings.install.hint')}>
           <Button className="self-start" onClick={() => void install()}>
@@ -189,6 +195,8 @@ export function SettingsPage() {
           </Button>
         </Section>
       )}
+
+      <SharesSection />
 
       <Section title={t('settings.account.title')}>
         <p className="text-sm text-muted-foreground">
