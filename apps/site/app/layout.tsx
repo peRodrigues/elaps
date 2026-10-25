@@ -1,5 +1,11 @@
 import type { Metadata, Viewport } from 'next';
 import type { ReactNode } from 'react';
+// Fontes self-hosted (sem Google Fonts): Inter no texto, Poppins nos títulos e
+// números de destaque, JetBrains Mono nas durações.
+import '@fontsource-variable/inter';
+import '@fontsource/poppins/600.css';
+import '@fontsource/poppins/700.css';
+import '@fontsource-variable/jetbrains-mono';
 import './globals.css';
 
 export const metadata: Metadata = {

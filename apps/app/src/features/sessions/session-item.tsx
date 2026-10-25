@@ -46,7 +46,7 @@ export function SessionItem({
   const paused = end - start - net;
 
   return (
-    <li className="flex items-start gap-3 px-4 py-3">
+    <li className="flex items-start gap-3 rounded-xl bg-card px-4 py-3">
       <div className="flex min-w-0 flex-1 flex-col gap-1">
         <div className="flex items-center gap-2">
           <ColorDot color={info?.group?.color} />
@@ -61,7 +61,7 @@ export function SessionItem({
           )}
           {active && <Badge variant="secondary">{t('sessions.inProgress')}</Badge>}
         </div>
-        <p className="pl-4.5 text-xs text-muted-foreground tabular-nums">
+        <p className="pl-4.5 text-xs text-muted-foreground font-mono tabular-nums">
           {timeRange(start, session.ended_at ? end : null, timezone, {
             inProgress: t('sessions.inProgress'),
             nextDay: t('sessions.nextDay'),
@@ -72,7 +72,7 @@ export function SessionItem({
         {session.note && <p className="pl-4.5 text-sm break-words">{session.note}</p>}
         <TagChips tagIds={tagIds} tags={tags} className="pl-4.5" />
       </div>
-      <span className="pt-0.5 text-sm tabular-nums">{formatDuration(net, t)}</span>
+      <span className="pt-0.5 text-sm font-mono tabular-nums">{formatDuration(net, t)}</span>
       {active ? (
         <Button asChild size="icon" variant="ghost" className="-my-1 size-8">
           <Link to="/" aria-label={t('sessions.openTimer')} title={t('sessions.openTimer')}>

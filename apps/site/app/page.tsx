@@ -5,10 +5,10 @@ export default function Home() {
     <main className="grid min-h-dvh place-items-center p-6 text-center">
       <div className="flex flex-col items-center gap-4">
         <h1 className="text-5xl font-bold">Elaps</h1>
-        <p className="text-slate-500">Registre o tempo que você dedica ao que importa.</p>
+        <p className="text-muted">Registre o tempo que você dedica ao que importa.</p>
         <a
           href={appUrl}
-          className="rounded-md bg-slate-900 px-5 py-2.5 text-sm font-medium text-white hover:bg-slate-700"
+          className="rounded-xl bg-primary px-5 py-2.5 text-sm font-medium text-primary-ink hover:opacity-90"
         >
           Abrir o app
         </a>

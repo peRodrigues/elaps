@@ -116,7 +116,7 @@ export function ShareDialog({
           <DialogDescription>{payload.period.label}</DialogDescription>
         </DialogHeader>
 
-        <div className="mx-auto aspect-[4/5] w-full max-w-64 overflow-hidden rounded-md border bg-muted">
+        <div className="mx-auto aspect-[4/5] w-full max-w-64 overflow-hidden rounded-xl bg-muted">
           {image && (
             <img src={image.url} alt={t('share.previewAlt')} className="size-full object-contain" />
           )}
@@ -154,7 +154,7 @@ export function ShareDialog({
                 readOnly
                 value={link}
                 aria-label={t('share.linkLabel')}
-                className="h-9 min-w-0 flex-1 rounded-md border bg-background px-3 text-sm"
+                className="h-9 min-w-0 flex-1 rounded-lg bg-input px-3 text-sm outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50"
                 onFocus={(e) => e.currentTarget.select()}
               />
               <Button variant="outline" onClick={() => void copy()}>

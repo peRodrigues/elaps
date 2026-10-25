@@ -32,14 +32,14 @@ export function GoalBar({
             aria-hidden
             className={cn(
               'size-2.5 shrink-0 self-center rounded-full',
-              !label.color && 'border-2 border-primary',
+              !label.color && 'bg-primary',
             )}
             style={label.color ? { backgroundColor: label.color } : undefined}
           />
           <span className="truncate font-medium">{label.name}</span>
           <span className="shrink-0 text-xs text-muted-foreground">{period}</span>
         </span>
-        <span className="shrink-0 text-xs text-muted-foreground tabular-nums">
+        <span className="shrink-0 text-xs text-muted-foreground font-mono tabular-nums">
           {t('goals.progress', {
             done: formatDuration(progress.done_ms, t),
             target: formatDuration(progress.target_ms, t),

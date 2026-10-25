@@ -60,7 +60,9 @@ export function LoginPage() {
     <main className="grid min-h-dvh place-items-center p-4">
       <Card className="w-full max-w-sm">
         <CardHeader>
-          <span className="text-sm font-semibold text-muted-foreground">{t('app.name')}</span>
+          <span className="font-display text-sm font-semibold text-muted-foreground">
+            {t('app.name')}
+          </span>
           <CardTitle>
             <h1 className="text-2xl">
               {sentTo ? t('auth.login.sentTitle') : t('auth.login.title')}

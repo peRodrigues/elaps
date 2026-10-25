@@ -55,7 +55,7 @@ export function ComparisonCard({ comparison, lookup }: { comparison: Comparison;
                 />
                 <span className="flex min-w-0 flex-col">
                   <span className="truncate font-medium">{lookup.groupName(g.group_id)}</span>
-                  <span className="text-xs text-muted-foreground tabular-nums">
+                  <span className="text-xs text-muted-foreground font-mono tabular-nums">
                     {formatDuration(g.current_ms, t)} · {formatDuration(g.previous_ms, t)}
                   </span>
                 </span>

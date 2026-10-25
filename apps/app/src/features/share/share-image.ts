@@ -20,14 +20,32 @@ export interface ShareImageLabels {
   weekdays: string[];
 }
 
-const FONT = 'system-ui, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif';
+// As fontes são as do app (@font-face em index.css); renderShareImage espera
+// carregarem antes de desenhar. Sem elas, caem nas do sistema.
+const FALLBACK = 'system-ui, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif';
+/** Texto e números. */
+const FONT = `"Inter Variable", ${FALLBACK}`;
+/** Título e total, em Poppins. */
+const DISPLAY = `"Poppins", ${FALLBACK}`;
 const PAD = 72;
-const INK = '#0f172a';
-const MUTED = '#64748b';
-const TRACK = '#e2e8f0';
-const CARD = '#f1f5f9';
+// Camadas por fundo, como no app: página, cartões brancos, trilho das barras.
+const PAGE = '#f4f4f5';
+const INK = '#18181b';
+const MUTED = '#71717a';
+const TRACK = '#e4e4e7';
+const CARD = '#ffffff';
 /** Barras do dia: o total do dia não é de um grupo só, então não leva cor de grupo. */
-const DAILY = '#334155';
+const DAILY = '#3f3f46';
+
+/** Garante as fontes no canvas (sem rede: vêm do precache do PWA). */
+async function loadFonts() {
+  if (typeof document === 'undefined' || !document.fonts) return;
+  await Promise.all(
+    ['700 64px "Poppins"', '400 26px "Inter Variable"', '700 40px "Inter Variable"'].map((f) =>
+      document.fonts.load(f).catch(() => []),
+    ),
+  );
+}
 
 function roundRect(
   ctx: CanvasRenderingContext2D,
@@ -54,6 +72,7 @@ export async function renderShareImage(
   payload: SharePayloadV1,
   labels: ShareImageLabels,
 ): Promise<Blob> {
+  await loadFonts();
   const canvas = document.createElement('canvas');
   canvas.width = SHARE_IMAGE_WIDTH;
   canvas.height = SHARE_IMAGE_HEIGHT;
@@ -61,13 +80,13 @@ export async function renderShareImage(
   if (!ctx) throw new Error('canvas indisponível');
   const inner = SHARE_IMAGE_WIDTH - PAD * 2;
 
-  ctx.fillStyle = '#ffffff';
+  ctx.fillStyle = PAGE;
   ctx.fillRect(0, 0, SHARE_IMAGE_WIDTH, SHARE_IMAGE_HEIGHT);
   ctx.textBaseline = 'alphabetic';
 
   // Cabeçalho
   ctx.fillStyle = INK;
-  ctx.font = `700 64px ${FONT}`;
+  ctx.font = `700 64px ${DISPLAY}`;
   ctx.fillText('Elaps', PAD, 130);
   ctx.fillStyle = MUTED;
   ctx.font = `400 36px ${FONT}`;
@@ -77,7 +96,7 @@ export async function renderShareImage(
   ctx.font = `500 30px ${FONT}`;
   ctx.fillText(labels.total.toUpperCase(), PAD, 300);
   ctx.fillStyle = INK;
-  ctx.font = `800 132px ${FONT}`;
+  ctx.font = `700 132px ${DISPLAY}`;
   ctx.fillText(fit(ctx, labels.duration(payload.total_ms), inner), PAD, 430);
 
   // Média e sequência
@@ -175,8 +194,8 @@ export async function renderShareImage(
 
   // Rodapé discreto
   ctx.textAlign = 'center';
-  ctx.fillStyle = '#94a3b8';
-  ctx.font = `500 26px ${FONT}`;
+  ctx.fillStyle = '#a1a1aa';
+  ctx.font = `600 26px ${DISPLAY}`;
   ctx.fillText('elaps', SHARE_IMAGE_WIDTH / 2, SHARE_IMAGE_HEIGHT - 48);
   ctx.textAlign = 'left';
 

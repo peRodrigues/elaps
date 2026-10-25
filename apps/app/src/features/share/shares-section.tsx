@@ -63,9 +63,9 @@ export function SharesSection() {
         ) : list.length === 0 ? (
           <p className="text-sm text-muted-foreground">{t('share.section.empty')}</p>
         ) : (
-          <ul className="flex flex-col divide-y">
+          <ul className="flex flex-col gap-2">
             {list.map((s) => (
-              <li key={s.id} className="flex flex-col gap-2 py-3 first:pt-0 last:pb-0">
+              <li key={s.id} className="flex flex-col gap-2 rounded-xl bg-muted p-3">
                 <div className="flex items-center justify-between gap-2">
                   <span className="min-w-0 truncate text-sm font-medium">{s.period_label}</span>
                   <Badge variant={s.revoked_at ? 'outline' : 'secondary'}>

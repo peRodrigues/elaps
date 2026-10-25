@@ -72,7 +72,7 @@ export function GoalsPage() {
     );
   } else if (progress.data.length === 0 && archived.length === 0) {
     body = (
-      <div className="flex flex-col items-center gap-3 rounded-lg border border-dashed p-8 text-center">
+      <div className="flex flex-col items-center gap-3 rounded-2xl bg-card p-8 text-center">
         <h2 className="font-semibold">{t('goals.empty.title')}</h2>
         <p className="max-w-sm text-sm text-muted-foreground">{t('goals.empty.body')}</p>
         <Button onClick={openCreate}>
@@ -126,12 +126,8 @@ export function GoalsPage() {
                           <div className="flex min-w-0 items-center gap-3">
                             <span
                               aria-hidden
-                              className="size-3 shrink-0 rounded-full border-2 border-muted-foreground"
-                              style={
-                                l.color
-                                  ? { backgroundColor: l.color, borderColor: l.color }
-                                  : undefined
-                              }
+                              className="size-3 shrink-0 rounded-full bg-muted-foreground"
+                              style={l.color ? { backgroundColor: l.color } : undefined}
                             />
                             <div className="min-w-0">
                               <p className="truncate text-sm text-muted-foreground">{l.name}</p>

@@ -193,7 +193,7 @@ export function GroupsPage() {
     );
   } else if (groups.length === 0) {
     body = (
-      <div className="flex flex-col items-center gap-3 rounded-lg border border-dashed p-8 text-center">
+      <div className="flex flex-col items-center gap-3 rounded-2xl bg-card p-8 text-center">
         <h2 className="font-semibold">{t('groups.empty.title')}</h2>
         <p className="max-w-sm text-sm text-muted-foreground">{t('groups.empty.body')}</p>
         <Button onClick={() => openName({ kind: 'group' })}>
@@ -263,7 +263,7 @@ export function GroupsPage() {
         <Button
           size="icon"
           aria-label={t('groups.create')}
-          className="fixed right-4 bottom-[calc(5rem+env(safe-area-inset-bottom))] z-20 size-14 rounded-full shadow-lg md:hidden"
+          className="fixed right-4 bottom-[calc(5rem+env(safe-area-inset-bottom))] z-20 size-14 rounded-full shadow-float md:hidden"
           onClick={() => setSheet(true)}
         >
           <Plus className="size-6" />

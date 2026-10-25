@@ -213,7 +213,7 @@ export function NameDialog({
                     onClick={() => setColor(c)}
                     style={{ backgroundColor: c }}
                     className={cn(
-                      'size-8 rounded-full ring-offset-2 ring-offset-background transition-shadow',
+                      'size-8 rounded-full ring-offset-2 ring-offset-popover transition-shadow',
                       color === c && 'ring-2 ring-foreground',
                     )}
                   />

@@ -127,7 +127,7 @@ export function DailyChartCard({
                 if (!active || !payload?.length) return null;
                 const row = payload[0]!.payload as Row;
                 return (
-                  <div className="grid min-w-40 gap-1.5 rounded-lg border bg-popover px-3 py-2 text-xs text-popover-foreground shadow-xl">
+                  <div className="grid min-w-40 gap-1.5 rounded-xl bg-popover px-3 py-2 text-xs text-popover-foreground shadow-float">
                     <span className="font-medium capitalize">
                       {fullDay.format(utc(label as string))}
                     </span>
@@ -143,14 +143,14 @@ export function DailyChartCard({
                             />
                             {lookup.groupName(id)}
                           </span>
-                          <span className="tabular-nums">
+                          <span className="font-mono tabular-nums">
                             {formatDuration(row[id] as number, t)}
                           </span>
                         </span>
                       ))}
-                    <span className="flex justify-between gap-4 border-t pt-1.5 font-medium">
+                    <span className="flex justify-between gap-4 pt-1.5 font-medium">
                       {t('dashboard.daily.total')}
-                      <span className="tabular-nums">{formatDuration(row.total, t)}</span>
+                      <span className="font-mono tabular-nums">{formatDuration(row.total, t)}</span>
                     </span>
                   </div>
                 );

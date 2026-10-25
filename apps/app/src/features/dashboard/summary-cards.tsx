@@ -9,7 +9,7 @@ function Stat({ label, value, hint }: { label: string; value: string; hint?: str
     <Card>
       <CardContent className="flex flex-col gap-1">
         <span className="text-sm text-muted-foreground">{label}</span>
-        <span className="text-xl font-semibold tabular-nums sm:text-2xl">{value}</span>
+        <span className="font-display text-xl font-semibold tabular-nums sm:text-2xl">{value}</span>
         {hint && <span className="text-xs text-muted-foreground">{hint}</span>}
       </CardContent>
     </Card>
@@ -23,7 +23,7 @@ export function Delta({ deltaMs, ratio }: { deltaMs: number; ratio: number | nul
   const sign = deltaMs > 0 ? '+' : deltaMs < 0 ? '−' : '';
   const pct = ratio === null ? null : `${Math.round(Math.abs(ratio) * 100)}%`;
   return (
-    <span className="inline-flex items-center gap-1 tabular-nums">
+    <span className="inline-flex items-center gap-1 font-mono tabular-nums">
       <Icon className="size-4" aria-hidden />
       <span>
         {sign}

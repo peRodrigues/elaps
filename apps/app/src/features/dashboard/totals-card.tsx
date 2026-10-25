@@ -64,7 +64,9 @@ export function TotalsCard({ totals, lookup }: { totals: Totals; lookup: Lookup 
                       />
                       <span className="truncate font-medium">{lookup.groupName(g.group_id)}</span>
                     </span>
-                    <span className="shrink-0 tabular-nums">{formatDuration(g.ms, t)}</span>
+                    <span className="shrink-0 font-mono tabular-nums">
+                      {formatDuration(g.ms, t)}
+                    </span>
                   </span>
                   <Bar ratio={g.ms / maxGroup} color={color} />
                 </button>
@@ -76,7 +78,9 @@ export function TotalsCard({ totals, lookup }: { totals: Totals; lookup: Lookup 
                           <span className="truncate text-muted-foreground">
                             {lookup.areaName(a.area_id)}
                           </span>
-                          <span className="shrink-0 tabular-nums">{formatDuration(a.ms, t)}</span>
+                          <span className="shrink-0 font-mono tabular-nums">
+                            {formatDuration(a.ms, t)}
+                          </span>
                         </span>
                         <Bar ratio={a.ms / maxArea} color={color} />
                       </li>

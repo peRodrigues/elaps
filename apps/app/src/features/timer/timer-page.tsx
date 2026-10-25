@@ -237,13 +237,13 @@ export function TimerPage() {
                     aria-live="off"
                     aria-label={t('pomodoro.remaining')}
                     className={cn(
-                      'text-center text-6xl font-semibold tabular-nums sm:text-7xl',
+                      'text-center text-6xl font-semibold font-mono tabular-nums sm:text-7xl',
                       (phase.kind !== 'focus' || phase.paused) && 'text-muted-foreground',
                     )}
                   >
                     {formatClock(phase.remaining_ms + 999)}
                   </p>
-                  <p className="text-sm text-muted-foreground tabular-nums">
+                  <p className="text-sm text-muted-foreground font-mono tabular-nums">
                     {t('pomodoro.net', { time: formatClock(timerElapsedMs(state, now)) })}
                   </p>
                 </div>
@@ -252,7 +252,7 @@ export function TimerPage() {
                   role="timer"
                   aria-live="off"
                   className={cn(
-                    'text-center text-6xl font-semibold tabular-nums sm:text-7xl',
+                    'text-center text-6xl font-semibold font-mono tabular-nums sm:text-7xl',
                     active.status === 'paused' && 'text-muted-foreground',
                   )}
                 >
@@ -301,7 +301,7 @@ export function TimerPage() {
             </div>
           ) : (
             <>
-              <p className="text-center text-6xl font-semibold text-muted-foreground tabular-nums sm:text-7xl">
+              <p className="text-center text-6xl font-semibold text-muted-foreground font-mono tabular-nums sm:text-7xl">
                 {formatClock(0)}
               </p>
               <ModeToggle value={mode} onChange={setMode} />

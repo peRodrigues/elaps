@@ -72,7 +72,7 @@ export function TagsCard({ rows }: { rows: TagRow[] }) {
                       </>
                     )}
                   </span>
-                  <span className="shrink-0 tabular-nums">{formatDuration(r.ms, t)}</span>
+                  <span className="shrink-0 font-mono tabular-nums">{formatDuration(r.ms, t)}</span>
                 </span>
                 <div className="h-2 w-full rounded-full bg-muted" aria-hidden>
                   <div

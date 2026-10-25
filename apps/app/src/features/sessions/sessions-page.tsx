@@ -229,11 +229,11 @@ export function SessionsPage() {
                       yesterday: t('sessions.yesterday'),
                     })}
                   </h2>
-                  <span className="text-sm text-muted-foreground tabular-nums">
+                  <span className="text-sm text-muted-foreground font-mono tabular-nums">
                     {formatDuration(total, t)}
                   </span>
                 </div>
-                <ul className="flex flex-col divide-y rounded-lg border bg-card">
+                <ul className="flex flex-col gap-1">
                   {sessions.map((s) => (
                     <SessionItem
                       key={s.id}

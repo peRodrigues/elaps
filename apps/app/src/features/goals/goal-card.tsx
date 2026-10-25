@@ -83,10 +83,7 @@ export function GoalCard({
           <div className="flex min-w-0 items-center gap-3">
             <span
               aria-hidden
-              className={cn(
-                'size-4 shrink-0 rounded-full',
-                !label.color && 'border-2 border-primary',
-              )}
+              className={cn('size-4 shrink-0 rounded-full', !label.color && 'bg-primary')}
               style={label.color ? { backgroundColor: label.color } : undefined}
             />
             <div className="min-w-0">
@@ -119,13 +116,13 @@ export function GoalCard({
 
         <div className="flex flex-col gap-1.5">
           <div className="flex items-baseline justify-between gap-2 text-sm">
-            <span className="tabular-nums">
+            <span className="font-mono tabular-nums">
               {t('goals.progress', {
                 done: formatDuration(current.done_ms, t),
                 target: formatDuration(current.target_ms, t),
               })}
             </span>
-            <span className="font-semibold tabular-nums">
+            <span className="font-semibold font-mono tabular-nums">
               {t('goals.percent', { value: percent })}
             </span>
           </div>

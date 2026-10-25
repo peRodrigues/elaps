@@ -11,6 +11,9 @@ export default defineConfig({
     tailwindcss(),
     VitePWA({
       registerType: 'autoUpdate',
+      // Padrão do Workbox (js, css, html) + as fontes, para funcionarem offline.
+      // Ícones e manifesto entram pelo includeAssets/manifest, como antes.
+      workbox: { globPatterns: ['**/*.{js,css,html,woff2}'] },
       includeAssets: ['icon.svg', 'favicon-32x32.png', 'apple-touch-icon-180x180.png'],
       manifest: {
         name: 'Elaps',

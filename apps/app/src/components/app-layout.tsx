@@ -50,8 +50,8 @@ export function AppLayout() {
   const [quick, setQuick] = useState<'group' | 'area' | null>(null);
   return (
     <div className="flex min-h-dvh flex-col md:flex-row">
-      <aside className="sticky top-0 hidden h-dvh w-60 shrink-0 flex-col gap-6 self-start overflow-y-auto border-r bg-card p-4 md:flex">
-        <span className="px-2 text-lg font-semibold">{t('app.name')}</span>
+      <aside className="sticky top-0 hidden h-dvh w-60 shrink-0 flex-col gap-6 self-start overflow-y-auto bg-card p-4 md:flex">
+        <span className="px-2 font-display text-lg font-semibold">{t('app.name')}</span>
         <nav aria-label={t('nav.label')} className="flex flex-1 flex-col gap-1 overflow-y-auto">
           {items.map(({ to, key, icon: Icon }) => (
             <NavLink
@@ -73,8 +73,8 @@ export function AppLayout() {
         <ThemeToggle />
       </aside>
 
-      <header className="flex items-center justify-between border-b bg-card px-4 py-2 md:hidden">
-        <span className="text-lg font-semibold">{t('app.name')}</span>
+      <header className="flex items-center justify-between bg-card px-4 py-2 md:hidden">
+        <span className="font-display text-lg font-semibold">{t('app.name')}</span>
         <ThemeToggle />
       </header>
 
@@ -92,7 +92,7 @@ export function AppLayout() {
 
       <nav
         aria-label={t('nav.label')}
-        className="fixed inset-x-0 bottom-0 z-10 grid grid-cols-5 border-t bg-card pb-[env(safe-area-inset-bottom)] md:hidden"
+        className="fixed inset-x-0 bottom-0 z-10 grid grid-cols-5 bg-card pb-[env(safe-area-inset-bottom)] md:hidden"
       >
         {main.map(({ to, key, icon: Icon }) => (
           <NavLink

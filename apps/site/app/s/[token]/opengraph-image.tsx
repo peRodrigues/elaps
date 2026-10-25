@@ -1,3 +1,5 @@
+import { readFile } from 'node:fs/promises';
+import { join } from 'node:path';
 import { notFound } from 'next/navigation';
 import { ImageResponse } from 'next/og';
 import { formatDuration } from '@/lib/format';
@@ -11,9 +13,17 @@ export const alt = 'Resumo de tempo no Elaps';
 export const size = { width: 1200, height: 630 };
 export const contentType = 'image/png';
 
-const INK = '#0f172a';
-const MUTED = '#64748b';
-const TRACK = '#e2e8f0';
+// Camadas por fundo, como no app: página, cartão branco, trilho das barras.
+const PAGE = '#f4f4f5';
+const CARD = '#ffffff';
+const INK = '#18181b';
+const MUTED = '#71717a';
+const TRACK = '#e4e4e7';
+
+// O satori (next/og) não lê woff2 nem fonte variável: woff estático, copiado do
+// fontsource para assets/og-fonts (licença OFL ao lado). O next.config inclui a
+// pasta no trace da função, para o arquivo existir na Vercel.
+const fontFile = (name: string) => readFile(join(process.cwd(), 'assets/og-fonts', name));
 
 /** Imagem de prévia (WhatsApp, X…): total, período e barras dos grupos. */
 export default async function OgImage({ params }: { params: Promise<{ token: string }> }) {
@@ -24,6 +34,11 @@ export default async function OgImage({ params }: { params: Promise<{ token: str
   const { payload } = share;
   const groups = payload.groups.slice(0, 4);
   const max = Math.max(1, ...groups.map((g) => g.ms));
+  const [inter400, inter600, poppins700] = await Promise.all([
+    fontFile('inter-latin-400-normal.woff'),
+    fontFile('inter-latin-600-normal.woff'),
+    fontFile('poppins-latin-700-normal.woff'),
+  ]);
 
   return new ImageResponse(
     <div
@@ -32,47 +47,75 @@ export default async function OgImage({ params }: { params: Promise<{ token: str
         height: '100%',
         display: 'flex',
         flexDirection: 'column',
-        background: '#ffffff',
-        padding: '56px 72px',
-        fontFamily: 'sans-serif',
+        background: PAGE,
+        padding: '48px 56px',
+        fontFamily: 'Inter',
         color: INK,
       }}
     >
       <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between' }}>
-        <div style={{ fontSize: 52, fontWeight: 700 }}>Elaps</div>
+        <div style={{ fontSize: 52, fontWeight: 700, fontFamily: 'Poppins' }}>Elaps</div>
         <div style={{ fontSize: 32, color: MUTED }}>{payload.period.label}</div>
       </div>
-      <div style={{ display: 'flex', fontSize: 26, color: MUTED, marginTop: 36 }}>TEMPO TOTAL</div>
-      <div style={{ display: 'flex', fontSize: 120, fontWeight: 800, lineHeight: 1.1 }}>
-        {formatDuration(payload.total_ms)}
-      </div>
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 18, marginTop: 28 }}>
-        {groups.map((g) => (
-          <div key={g.name} style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-            <div
-              style={{
-                display: 'flex',
-                justifyContent: 'space-between',
-                fontSize: 26,
-                fontWeight: 600,
-              }}
-            >
-              <span>{g.name}</span>
-              <span>{formatDuration(g.ms)}</span>
-            </div>
-            <div style={{ display: 'flex', height: 14, background: TRACK, borderRadius: 7 }}>
+      <div
+        style={{
+          display: 'flex',
+          flexDirection: 'column',
+          justifyContent: 'center',
+          flex: 1,
+          marginTop: 28,
+          padding: '32px 40px',
+          background: CARD,
+          borderRadius: 32,
+        }}
+      >
+        <div style={{ display: 'flex', fontSize: 24, color: MUTED }}>TEMPO TOTAL</div>
+        <div
+          style={{
+            display: 'flex',
+            fontSize: 112,
+            fontWeight: 700,
+            lineHeight: 1.1,
+            fontFamily: 'Poppins',
+          }}
+        >
+          {formatDuration(payload.total_ms)}
+        </div>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 16, marginTop: 20 }}>
+          {groups.map((g) => (
+            <div key={g.name} style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
               <div
                 style={{
-                  width: `${Math.max(3, (g.ms / max) * 100)}%`,
-                  background: g.color,
-                  borderRadius: 7,
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  fontSize: 26,
+                  fontWeight: 600,
                 }}
-              />
+              >
+                <span>{g.name}</span>
+                <span>{formatDuration(g.ms)}</span>
+              </div>
+              <div style={{ display: 'flex', height: 14, background: TRACK, borderRadius: 7 }}>
+                <div
+                  style={{
+                    width: `${Math.max(3, (g.ms / max) * 100)}%`,
+                    background: g.color,
+                    borderRadius: 7,
+                  }}
+                />
+              </div>
             </div>
-          </div>
-        ))}
+          ))}
+        </div>
       </div>
     </div>,
-    size,
+    {
+      ...size,
+      fonts: [
+        { name: 'Inter', data: inter400, weight: 400, style: 'normal' },
+        { name: 'Inter', data: inter600, weight: 600, style: 'normal' },
+        { name: 'Poppins', data: poppins700, weight: 700, style: 'normal' },
+      ],
+    },
   );
 }

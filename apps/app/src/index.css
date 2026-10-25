@@ -2,53 +2,100 @@
 
 @custom-variant dark (&:is(.dark *));
 
+/*
+ * Fontes self-hosted (funcionam no PWA offline): só o subconjunto latin, que cobre
+ * o pt-BR (acentos, ç, ã). Inter = texto e UI; Poppins = títulos e números de
+ * destaque; JetBrains Mono = relógios, durações e colunas de números.
+ */
+@font-face {
+  font-family: 'Inter Variable';
+  font-style: normal;
+  font-display: swap;
+  font-weight: 100 900;
+  src: url('@fontsource-variable/inter/files/inter-latin-wght-normal.woff2')
+    format('woff2-variations');
+}
+@font-face {
+  font-family: 'JetBrains Mono Variable';
+  font-style: normal;
+  font-display: swap;
+  font-weight: 100 800;
+  src: url('@fontsource-variable/jetbrains-mono/files/jetbrains-mono-latin-wght-normal.woff2')
+    format('woff2-variations');
+}
+@font-face {
+  font-family: 'Poppins';
+  font-style: normal;
+  font-display: swap;
+  font-weight: 500;
+  src: url('@fontsource/poppins/files/poppins-latin-500-normal.woff2') format('woff2');
+}
+@font-face {
+  font-family: 'Poppins';
+  font-style: normal;
+  font-display: swap;
+  font-weight: 600;
+  src: url('@fontsource/poppins/files/poppins-latin-600-normal.woff2') format('woff2');
+}
+@font-face {
+  font-family: 'Poppins';
+  font-style: normal;
+  font-display: swap;
+  font-weight: 700;
+  src: url('@fontsource/poppins/files/poppins-latin-700-normal.woff2') format('woff2');
+}
+
+/*
+ * Camadas por fundo, sem bordas: página (background) < superfície (card, barras)
+ * < elevado (popover, diálogo, input, hover/selecionado). --border fica só para o
+ * que o kit ainda pinta e é quase igual ao fundo; nada de borda decorativa.
+ */
 :root {
-  --background: oklch(1 0 0);
-  --foreground: oklch(0.145 0 0);
+  --background: oklch(0.955 0.002 286);
+  --foreground: oklch(0.21 0.006 286);
   --card: oklch(1 0 0);
-  --primary: oklch(0.205 0 0);
-  --primary-foreground: oklch(0.985 0 0);
-  --secondary: oklch(0.97 0 0);
-  --secondary-foreground: oklch(0.205 0 0);
-  --muted: oklch(0.97 0 0);
-  --muted-foreground: oklch(0.556 0 0);
-  --accent: oklch(0.97 0 0);
-  --accent-foreground: oklch(0.205 0 0);
-  --border: oklch(0.922 0 0);
-  --ring: oklch(0.708 0 0);
-  /* Tokens do kit shadcn (T4): popover, destructive, input, gráficos, raio. */
-  --card-foreground: oklch(0.145 0 0);
+  --card-foreground: oklch(0.21 0.006 286);
   --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.145 0 0);
+  --popover-foreground: oklch(0.21 0.006 286);
+  --primary: oklch(0.21 0.006 286);
+  --primary-foreground: oklch(0.985 0 0);
+  --secondary: oklch(0.92 0.004 286);
+  --secondary-foreground: oklch(0.21 0.006 286);
+  --muted: oklch(0.935 0.003 286);
+  --muted-foreground: oklch(0.47 0.012 286);
+  --accent: oklch(0.895 0.005 286);
+  --accent-foreground: oklch(0.21 0.006 286);
+  --input: oklch(0.92 0.004 286);
+  --border: oklch(0.925 0.004 286);
+  --ring: oklch(0.55 0.015 286);
   --destructive: oklch(0.577 0.245 27.325);
-  --input: oklch(0.922 0 0);
   --chart-1: oklch(0.646 0.222 41.116);
   --chart-2: oklch(0.6 0.118 184.704);
   --chart-3: oklch(0.398 0.07 227.392);
   --chart-4: oklch(0.828 0.189 84.429);
   --chart-5: oklch(0.769 0.188 70.08);
-  --radius: 0.625rem;
+  --radius: 0.875rem;
 }
 
 .dark {
-  --background: oklch(0.145 0 0);
-  --foreground: oklch(0.985 0 0);
-  --card: oklch(0.205 0 0);
-  --primary: oklch(0.922 0 0);
-  --primary-foreground: oklch(0.205 0 0);
-  --secondary: oklch(0.269 0 0);
-  --secondary-foreground: oklch(0.985 0 0);
-  --muted: oklch(0.269 0 0);
-  --muted-foreground: oklch(0.708 0 0);
-  --accent: oklch(0.269 0 0);
-  --accent-foreground: oklch(0.985 0 0);
-  --border: oklch(1 0 0 / 10%);
-  --ring: oklch(0.556 0 0);
-  --card-foreground: oklch(0.985 0 0);
-  --popover: oklch(0.205 0 0);
-  --popover-foreground: oklch(0.985 0 0);
+  --background: oklch(0.145 0.004 286);
+  --foreground: oklch(0.96 0.002 286);
+  --card: oklch(0.19 0.005 286);
+  --card-foreground: oklch(0.96 0.002 286);
+  --popover: oklch(0.225 0.006 286);
+  --popover-foreground: oklch(0.96 0.002 286);
+  --primary: oklch(0.93 0.003 286);
+  --primary-foreground: oklch(0.19 0.005 286);
+  --secondary: oklch(0.245 0.006 286);
+  --secondary-foreground: oklch(0.96 0.002 286);
+  --muted: oklch(0.245 0.006 286);
+  --muted-foreground: oklch(0.71 0.01 286);
+  --accent: oklch(0.285 0.007 286);
+  --accent-foreground: oklch(0.96 0.002 286);
+  --input: oklch(0.245 0.006 286);
+  --border: oklch(0.245 0.006 286);
+  --ring: oklch(0.65 0.015 286);
   --destructive: oklch(0.704 0.191 22.216);
-  --input: oklch(1 0 0 / 15%);
   --chart-1: oklch(0.488 0.243 264.376);
   --chart-2: oklch(0.696 0.17 162.48);
   --chart-3: oklch(0.769 0.188 70.08);
@@ -57,6 +104,15 @@
 }
 
 @theme inline {
+  --font-sans:
+    'Inter Variable', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji';
+  --font-display: 'Poppins', 'Inter Variable', ui-sans-serif, system-ui, sans-serif;
+  --font-mono: 'JetBrains Mono Variable', ui-monospace, 'SFMono-Regular', Menlo, monospace;
+  --radius-sm: calc(var(--radius) - 6px);
+  --radius-md: calc(var(--radius) - 4px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+  --radius-2xl: calc(var(--radius) + 8px);
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --color-card: var(--card);
@@ -82,11 +138,28 @@
   --color-chart-5: var(--chart-5);
 }
 
+/* Sombra só nas camadas flutuantes (popover, diálogo, botão flutuante), bem leve. */
+@utility shadow-float {
+  box-shadow:
+    0 12px 32px -12px rgb(0 0 0 / 0.16),
+    0 2px 6px -2px rgb(0 0 0 / 0.06);
+  .dark & {
+    box-shadow:
+      0 16px 40px -12px rgb(0 0 0 / 0.6),
+      0 2px 8px -2px rgb(0 0 0 / 0.4);
+  }
+}
+
 @layer base {
   * {
     @apply border-border;
   }
   body {
-    @apply bg-background text-foreground;
+    @apply bg-background font-sans text-foreground antialiased;
+  }
+  /* Títulos em Poppins; o resto herda Inter. */
+  h1,
+  h2 {
+    @apply font-display tracking-tight;
   }
 }

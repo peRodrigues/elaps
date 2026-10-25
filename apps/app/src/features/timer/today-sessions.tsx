@@ -32,7 +32,7 @@ export function TodaySessions({
         </h2>
         <p className="text-sm text-muted-foreground">
           {t('timer.today.total')}:{' '}
-          <span className="font-semibold text-foreground tabular-nums">
+          <span className="font-semibold text-foreground font-mono tabular-nums">
             {formatDuration(totalMs, t)}
           </span>
         </p>
@@ -40,7 +40,7 @@ export function TodaySessions({
       {data.sessions.length === 0 ? (
         <p className="text-sm text-muted-foreground">{t('timer.today.empty')}</p>
       ) : (
-        <ul className="flex flex-col divide-y rounded-lg border bg-card">
+        <ul className="flex flex-col gap-1">
           {data.sessions.map((session) => {
             const info = lookup(session.area_id);
             const start = formatTime(toMs(session.started_at), timezone);
@@ -48,17 +48,17 @@ export function TodaySessions({
               ? formatTime(toMs(session.ended_at), timezone)
               : t('timer.today.inProgress');
             return (
-              <li key={session.id} className="flex flex-col gap-1 px-4 py-3">
+              <li key={session.id} className="flex flex-col gap-1 rounded-xl bg-card px-4 py-3">
                 <div className="flex items-center gap-2">
                   <ColorDot color={info?.group?.color} />
                   <span className="min-w-0 flex-1 truncate text-sm font-medium">
                     {info?.group?.name} › {info?.area.name}
                   </span>
-                  <span className="text-sm tabular-nums">
+                  <span className="text-sm font-mono tabular-nums">
                     {formatDuration(netDurationMs(session, data.pauses, now), t)}
                   </span>
                 </div>
-                <p className="pl-4.5 text-xs text-muted-foreground tabular-nums">
+                <p className="pl-4.5 text-xs text-muted-foreground font-mono tabular-nums">
                   {start} – {end}
                 </p>
                 {session.note && <p className="pl-4.5 text-sm">{session.note}</p>}
