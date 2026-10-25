@@ -7,6 +7,8 @@
 -- com ~14 dias de sessões relativas à data do reset, no fuso America/Sao_Paulo:
 -- horários variados, um dia sem nada (quebra o streak), uma sessão cruzando a
 -- meia-noite, algumas com pausa e uma manual com nota. Nenhuma fica ativa.
+-- v2: 3 metas (total 2 h/dia; Estudo 10 h/semana, antes 8 h; JavaScript
+-- 20 h/mês) e 4 tags (revisão, exercício, leitura, projeto) em várias sessões.
 
 -- ---------------------------------------------------------------------------
 -- Usuário (auth.users + identidade de e-mail, para o login por senha funcionar)
@@ -114,3 +116,48 @@ select id,
        started_at + make_interval(mins => pause_after + pause_minutes)
 from seed_sessions
 where pause_after is not null;
+
+-- ---------------------------------------------------------------------------
+-- Metas (v2) e suas versões. Datas no fuso do perfil.
+-- ---------------------------------------------------------------------------
+
+insert into public.goals (id, user_id, target_kind, group_id, area_id, period) values
+  ('e0000000-0000-4000-8000-000000000001', 'd0000000-0000-4000-8000-000000000001', 'total', null, null, 'day'),
+  ('e0000000-0000-4000-8000-000000000002', 'd0000000-0000-4000-8000-000000000001', 'group', 'a0000000-0000-4000-8000-000000000001', null, 'week'),
+  ('e0000000-0000-4000-8000-000000000003', 'd0000000-0000-4000-8000-000000000001', 'area', null, 'b0000000-0000-4000-8000-000000000003', 'month');
+
+-- Estudo começou em 8 h/semana e subiu para 10 h há uma semana.
+insert into public.goal_versions (goal_id, target_minutes, effective_from)
+select goal_id, target_minutes, (now() at time zone 'America/Sao_Paulo')::date - days_ago
+from (values
+  ('e0000000-0000-4000-8000-000000000001'::uuid, 120,  14),
+  ('e0000000-0000-4000-8000-000000000002'::uuid, 480,  14),
+  ('e0000000-0000-4000-8000-000000000002'::uuid, 600,  7),
+  ('e0000000-0000-4000-8000-000000000003'::uuid, 1200, 14)
+) as v (goal_id, target_minutes, days_ago);
+
+-- ---------------------------------------------------------------------------
+-- Tags (v2) aplicadas às sessões do plano
+-- ---------------------------------------------------------------------------
+
+insert into public.tags (id, user_id, name) values
+  ('f0000000-0000-4000-8000-000000000001', 'd0000000-0000-4000-8000-000000000001', 'revisão'),
+  ('f0000000-0000-4000-8000-000000000002', 'd0000000-0000-4000-8000-000000000001', 'exercício'),
+  ('f0000000-0000-4000-8000-000000000003', 'd0000000-0000-4000-8000-000000000001', 'leitura'),
+  ('f0000000-0000-4000-8000-000000000004', 'd0000000-0000-4000-8000-000000000001', 'projeto');
+
+-- projeto: Trabalho; exercício: JavaScript pelo cronômetro; leitura: a manual;
+-- revisão: CSS e o HTML de anteontem (e a sessão da meia-noite, que fica com duas).
+insert into public.session_tags (session_id, tag_id, user_id)
+select s.id, t.id, 'd0000000-0000-4000-8000-000000000001'::uuid
+from seed_sessions s
+join public.tags t on t.name = case
+  when s.area in ('renpy', 'synq') then 'projeto'
+  when s.area = 'JavaScript' and s.source = 'timer' then 'exercício'
+  when s.source = 'manual' then 'leitura'
+  when s.area = 'CSS' or (s.area = 'HTML' and s.days_ago = 2) then 'revisão'
+end
+union all
+select s.id, 'f0000000-0000-4000-8000-000000000001'::uuid, 'd0000000-0000-4000-8000-000000000001'::uuid
+from seed_sessions s
+where s.area = 'JavaScript' and s.days_ago = 4;

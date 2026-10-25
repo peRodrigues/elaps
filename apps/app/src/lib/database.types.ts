@@ -62,6 +62,91 @@ export type Database = {
           },
         ];
       };
+      goal_versions: {
+        Row: {
+          created_at: string;
+          effective_from: string;
+          goal_id: string;
+          id: string;
+          target_minutes: number;
+        };
+        ComputedFields: never;
+        Insert: {
+          created_at?: string;
+          effective_from: string;
+          goal_id: string;
+          id?: string;
+          target_minutes: number;
+        };
+        Update: {
+          created_at?: string;
+          effective_from?: string;
+          goal_id?: string;
+          id?: string;
+          target_minutes?: number;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'goal_versions_goal_id_fkey';
+            columns: ['goal_id'];
+            isOneToOne: false;
+            referencedRelation: 'goals';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
+      goals: {
+        Row: {
+          archived_at: string | null;
+          area_id: string | null;
+          created_at: string;
+          group_id: string | null;
+          id: string;
+          period: string;
+          target_kind: string;
+          updated_at: string;
+          user_id: string;
+        };
+        ComputedFields: never;
+        Insert: {
+          archived_at?: string | null;
+          area_id?: string | null;
+          created_at?: string;
+          group_id?: string | null;
+          id?: string;
+          period: string;
+          target_kind: string;
+          updated_at?: string;
+          user_id?: string;
+        };
+        Update: {
+          archived_at?: string | null;
+          area_id?: string | null;
+          created_at?: string;
+          group_id?: string | null;
+          id?: string;
+          period?: string;
+          target_kind?: string;
+          updated_at?: string;
+          user_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'goals_area_id_user_id_fkey';
+            columns: ['area_id', 'user_id'];
+            isOneToOne: false;
+            referencedRelation: 'areas';
+            referencedColumns: ['id', 'user_id'];
+          },
+          {
+            foreignKeyName: 'goals_group_id_user_id_fkey';
+            columns: ['group_id', 'user_id'];
+            isOneToOne: false;
+            referencedRelation: 'groups';
+            referencedColumns: ['id', 'user_id'];
+          },
+        ];
+      };
       groups: {
         Row: {
           archived_at: string | null;
@@ -97,6 +182,10 @@ export type Database = {
         Row: {
           created_at: string;
           id: string;
+          pomodoro_focus_min: number;
+          pomodoro_long_break_min: number;
+          pomodoro_long_every: number;
+          pomodoro_short_break_min: number;
           theme: string;
           timezone: string;
           updated_at: string;
@@ -105,6 +194,10 @@ export type Database = {
         Insert: {
           created_at?: string;
           id: string;
+          pomodoro_focus_min?: number;
+          pomodoro_long_break_min?: number;
+          pomodoro_long_every?: number;
+          pomodoro_short_break_min?: number;
           theme?: string;
           timezone?: string;
           updated_at?: string;
@@ -112,6 +205,10 @@ export type Database = {
         Update: {
           created_at?: string;
           id?: string;
+          pomodoro_focus_min?: number;
+          pomodoro_long_break_min?: number;
+          pomodoro_long_every?: number;
+          pomodoro_short_break_min?: number;
           theme?: string;
           timezone?: string;
           updated_at?: string;
@@ -154,12 +251,50 @@ export type Database = {
           },
         ];
       };
+      session_tags: {
+        Row: {
+          created_at: string;
+          session_id: string;
+          tag_id: string;
+          user_id: string;
+        };
+        ComputedFields: never;
+        Insert: {
+          created_at?: string;
+          session_id: string;
+          tag_id: string;
+          user_id?: string;
+        };
+        Update: {
+          created_at?: string;
+          session_id?: string;
+          tag_id?: string;
+          user_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'session_tags_session_id_user_id_fkey';
+            columns: ['session_id', 'user_id'];
+            isOneToOne: false;
+            referencedRelation: 'sessions';
+            referencedColumns: ['id', 'user_id'];
+          },
+          {
+            foreignKeyName: 'session_tags_tag_id_user_id_fkey';
+            columns: ['tag_id', 'user_id'];
+            isOneToOne: false;
+            referencedRelation: 'tags';
+            referencedColumns: ['id', 'user_id'];
+          },
+        ];
+      };
       sessions: {
         Row: {
           area_id: string;
           created_at: string;
           ended_at: string | null;
           id: string;
+          mode: string;
           note: string | null;
           source: string;
           started_at: string;
@@ -172,6 +307,7 @@ export type Database = {
           created_at?: string;
           ended_at?: string | null;
           id?: string;
+          mode?: string;
           note?: string | null;
           source?: string;
           started_at?: string;
@@ -183,6 +319,7 @@ export type Database = {
           created_at?: string;
           ended_at?: string | null;
           id?: string;
+          mode?: string;
           note?: string | null;
           source?: string;
           started_at?: string;
@@ -199,11 +336,106 @@ export type Database = {
           },
         ];
       };
+      shares: {
+        Row: {
+          created_at: string;
+          hide_area_names: boolean;
+          id: string;
+          payload: NonNullable<Json>;
+          period_end: string;
+          period_label: string;
+          period_start: string;
+          revoked_at: string | null;
+          token: string;
+          user_id: string;
+        };
+        ComputedFields: never;
+        Insert: {
+          created_at?: string;
+          hide_area_names?: boolean;
+          id?: string;
+          payload: NonNullable<Json>;
+          period_end: string;
+          period_label: string;
+          period_start: string;
+          revoked_at?: string | null;
+          token?: string;
+          user_id?: string;
+        };
+        Update: {
+          created_at?: string;
+          hide_area_names?: boolean;
+          id?: string;
+          payload?: NonNullable<Json>;
+          period_end?: string;
+          period_label?: string;
+          period_start?: string;
+          revoked_at?: string | null;
+          token?: string;
+          user_id?: string;
+        };
+        Relationships: [];
+      };
+      tags: {
+        Row: {
+          archived_at: string | null;
+          created_at: string;
+          id: string;
+          name: string;
+          updated_at: string;
+          user_id: string;
+        };
+        ComputedFields: never;
+        Insert: {
+          archived_at?: string | null;
+          created_at?: string;
+          id?: string;
+          name: string;
+          updated_at?: string;
+          user_id?: string;
+        };
+        Update: {
+          archived_at?: string | null;
+          created_at?: string;
+          id?: string;
+          name?: string;
+          updated_at?: string;
+          user_id?: string;
+        };
+        Relationships: [];
+      };
     };
     Views: {
       [_ in never]: never;
     };
     Functions: {
+      create_goal: {
+        Args: {
+          p_area_id: string;
+          p_effective_from?: string;
+          p_group_id: string;
+          p_period: string;
+          p_target_kind: string;
+          p_target_minutes: number;
+        };
+        Returns: {
+          archived_at: string | null;
+          area_id: string | null;
+          created_at: string;
+          group_id: string | null;
+          id: string;
+          period: string;
+          target_kind: string;
+          updated_at: string;
+          user_id: string;
+        };
+        SetofOptions: {
+          from: '*';
+          to: 'goals';
+          isOneToOne: true;
+          isSetofReturn: false;
+        };
+      };
       edit_session: {
         Args: {
           p_area_id: string;
@@ -217,6 +449,7 @@ export type Database = {
           created_at: string;
           ended_at: string | null;
           id: string;
+          mode: string;
           note: string | null;
           source: string;
           started_at: string;
@@ -229,6 +462,17 @@ export type Database = {
           isOneToOne: true;
           isSetofReturn: false;
         };
+      };
+      get_share: {
+        Args: { p_token: string };
+        Returns: {
+          created_at: string;
+          hide_area_names: boolean;
+          payload: Json;
+          period_end: string;
+          period_label: string;
+          period_start: string;
+        }[];
       };
       is_valid_timezone: { Args: { tz: string }; Returns: boolean };
     };
