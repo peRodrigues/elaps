@@ -13,7 +13,7 @@ import { supabase } from '@/lib/supabase';
 // Mexer em sessões muda o cronômetro, as listas do dia e o dashboard.
 
 const PAGE_SIZE = 30;
-const SESSION_COLUMNS = 'id, user_id, area_id, started_at, ended_at, source, note';
+const SESSION_COLUMNS = 'id, user_id, area_id, started_at, ended_at, source, note, mode';
 
 /** A sessão mudou ou sumiu em outro aparelho. */
 export class SessionConflictError extends Error {
@@ -27,8 +27,14 @@ function check(error: { code?: string; message: string } | null) {
   throw new Error(error.message);
 }
 
-function toSession(row: Omit<Session, 'source'> & { source: string }): Session {
-  return { ...row, source: row.source === 'manual' ? 'manual' : 'timer' };
+function toSession(
+  row: Omit<Session, 'source' | 'mode'> & { source: string; mode: string },
+): Session {
+  return {
+    ...row,
+    source: row.source === 'manual' ? 'manual' : 'timer',
+    mode: row.mode === 'pomodoro' ? 'pomodoro' : 'free',
+  };
 }
 
 export interface SessionFilter {
@@ -76,8 +82,8 @@ export function useSessionList(filter: SessionFilter) {
         .range(pageParam, pageParam + PAGE_SIZE - 1);
       check(error);
       const sessions = (data ?? []).map(
-        ({ id, user_id, area_id, started_at, ended_at, source, note }) =>
-          toSession({ id, user_id, area_id, started_at, ended_at, source, note }),
+        ({ id, user_id, area_id, started_at, ended_at, source, note, mode }) =>
+          toSession({ id, user_id, area_id, started_at, ended_at, source, note, mode }),
       );
       const tags = await fetchSessionTags(sessions.map((x) => x.id));
       let pauses: SessionPause[] = [];

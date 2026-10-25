@@ -74,3 +74,15 @@ export {
 } from './goals';
 
 export { toSharePayload, type SharePayloadV1, type ShareOptions } from './share';
+
+export {
+  MAX_POMODORO_TRANSITIONS,
+  isEmptyPlan,
+  pomodoroState,
+  skipPomodoroPhase,
+  type PomodoroPhase,
+  type PomodoroPhaseKind,
+  type PomodoroPlan,
+  type PomodoroState,
+  type PlannedBreak,
+} from './pomodoro';

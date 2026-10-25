@@ -26,7 +26,7 @@ import { supabase } from '@/lib/supabase';
 
 export const GOALS_KEY = ['goals'] as const;
 
-const SESSION_COLUMNS = 'id, user_id, area_id, started_at, ended_at, source, note';
+const SESSION_COLUMNS = 'id, user_id, area_id, started_at, ended_at, source, note, mode';
 const PAGE = 1000;
 const PAUSE_CHUNK = 100;
 
@@ -82,7 +82,11 @@ async function fetchTouching(start: string, end: string) {
       .range(from, from + PAGE - 1);
     if (error) throw error;
     sessions.push(
-      ...data.map((r): Session => ({ ...r, source: r.source === 'manual' ? 'manual' : 'timer' })),
+      ...data.map((r): Session => ({
+        ...r,
+        source: r.source === 'manual' ? 'manual' : 'timer',
+        mode: r.mode === 'pomodoro' ? 'pomodoro' : 'free',
+      })),
     );
     if (data.length < PAGE) break;
   }

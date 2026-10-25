@@ -5,6 +5,8 @@ import {
   toIso,
   toMs,
   todayPeriod,
+  type PomodoroPlan,
+  type PomodoroSettings,
   type Session,
   type SessionPause,
   type SessionTag,
@@ -19,14 +21,25 @@ import { supabase } from '@/lib/supabase';
 // Cronômetro: o estado vive no banco (sessão com ended_at nulo + pausas).
 // As regras são do @elaps/core; aqui só se traduz o efeito em escrita.
 
-const SESSION_COLUMNS = 'id, user_id, area_id, started_at, ended_at, source, note';
-const PAUSE_COLUMNS = 'id, session_id, paused_at, resumed_at';
+const SESSION_COLUMNS =
+  'id, user_id, area_id, started_at, ended_at, source, note, mode, pomodoro_config';
+const PAUSE_COLUMNS = 'id, session_id, paused_at, resumed_at, kind';
 
-type SessionRow = Omit<Session, 'source'> & { source: string };
+type SessionRow = Omit<Session, 'source' | 'mode' | 'pomodoro_config'> & {
+  source: string;
+  mode: string;
+  pomodoro_config: unknown;
+};
 
-/** O tipo gerado diz string; o banco garante 'timer' | 'manual' por CHECK. */
+/** O tipo gerado diz string/Json; o banco garante os valores por CHECK. */
 function toSession(row: SessionRow): Session {
-  return { ...row, source: row.source === 'manual' ? 'manual' : 'timer' };
+  const pomodoro = row.mode === 'pomodoro';
+  return {
+    ...row,
+    source: row.source === 'manual' ? 'manual' : 'timer',
+    mode: pomodoro ? 'pomodoro' : 'free',
+    pomodoro_config: pomodoro ? (row.pomodoro_config as PomodoroSettings) : null,
+  };
 }
 
 /** Outro aparelho mudou o cronômetro antes desta escrita. */
@@ -39,7 +52,8 @@ function check(error: { code?: string; message: string } | null) {
   // 23505: segunda sessão ativa ou segunda pausa aberta (índices únicos).
   // 23514: a sessão já mudou e a escrita deixaria uma pausa fora dela.
   // P0002: a sessão sumiu (excluída em outro aparelho).
-  if (['23505', '23514', 'P0002'].includes(error.code ?? '')) {
+  // 40001: apply_pomodoro viu outra contagem de pausas (outro aparelho gravou antes).
+  if (['23505', '23514', 'P0002', '40001'].includes(error.code ?? '')) {
     throw new TimerConflictError(error.message);
   }
   throw new Error(error.message);
@@ -52,7 +66,7 @@ async function fetchPauses(sessionIds: string[]): Promise<SessionPause[]> {
     .select(PAUSE_COLUMNS)
     .in('session_id', sessionIds);
   check(error);
-  return data ?? [];
+  return (data ?? []).map((p) => ({ ...p, kind: p.kind === 'break' ? 'break' : 'manual' }));
 }
 
 // ---------------------------------------------------------------------------
@@ -129,10 +143,20 @@ export function useRecentAreaIds() {
 // Escrita
 // ---------------------------------------------------------------------------
 
-async function persist(effect: TimerEffect, note: string | null, tagIds: readonly string[]) {
+async function persist(
+  effect: TimerEffect,
+  note: string | null,
+  tagIds: readonly string[],
+  pomodoro: PomodoroSettings | null,
+) {
   switch (effect.type) {
     case 'create_session': {
-      const { error } = await supabase.from('sessions').insert(effect.session);
+      // Pomodoro: a sessão guarda o retrato da config; as fases saem dele.
+      const { error } = await supabase.from('sessions').insert({
+        ...effect.session,
+        mode: pomodoro ? 'pomodoro' : 'free',
+        pomodoro_config: pomodoro ? { ...pomodoro } : null,
+      });
       return check(error);
     }
     case 'create_pause': {
@@ -182,16 +206,48 @@ export interface TimerCommandInput {
   note?: string | null;
   /** Tags da sessão ao parar. */
   tagIds?: string[];
+  /** Ao iniciar: config do pomodoro (do perfil) ou null para o modo livre. */
+  pomodoro?: PomodoroSettings | null;
 }
 
 /** Aplica iniciar/pausar/retomar/parar. Transição inválida = conflito. */
 export function useTimerCommand() {
   const invalidate = useInvalidateTimer();
   return useMutation({
-    mutationFn: async ({ state, command, at, note = null, tagIds = [] }: TimerCommandInput) => {
+    mutationFn: async ({
+      state,
+      command,
+      at,
+      note = null,
+      tagIds = [],
+      pomodoro = null,
+    }: TimerCommandInput) => {
       const result = applyTimerCommand(state, command, at);
       if (!result.ok) throw new TimerConflictError(result.error.code);
-      await persist(result.effect, note, tagIds);
+      await persist(result.effect, note, tagIds, pomodoro);
+    },
+    onSettled: invalidate,
+  });
+}
+
+/**
+ * Grava viradas de fase do pomodoro (reconciliação, limite do relógio ou
+ * Pular fase) pela RPC apply_pomodoro, numa transação. Se outro aparelho
+ * gravou antes, a contagem de pausas não bate: TimerConflictError, e o
+ * recarregamento recalcula o plano.
+ */
+export function useApplyPomodoro() {
+  const invalidate = useInvalidateTimer();
+  return useMutation({
+    mutationFn: async ({ sessionId, plan }: { sessionId: string; plan: PomodoroPlan }) => {
+      const { error } = await supabase.rpc('apply_pomodoro', {
+        p_session_id: sessionId,
+        p_expected_pauses: plan.expected_pauses,
+        // O tipo gerado não marca como nulável; a função aceita null.
+        p_close_open_at: plan.close_open_at as string,
+        p_new_pauses: plan.new_pauses.map((b) => ({ ...b })),
+      });
+      check(error);
     },
     onSettled: invalidate,
   });

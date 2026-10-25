@@ -219,6 +219,7 @@ export type Database = {
         Row: {
           created_at: string;
           id: string;
+          kind: string;
           paused_at: string;
           resumed_at: string | null;
           session_id: string;
@@ -228,6 +229,7 @@ export type Database = {
         Insert: {
           created_at?: string;
           id?: string;
+          kind?: string;
           paused_at?: string;
           resumed_at?: string | null;
           session_id: string;
@@ -236,6 +238,7 @@ export type Database = {
         Update: {
           created_at?: string;
           id?: string;
+          kind?: string;
           paused_at?: string;
           resumed_at?: string | null;
           session_id?: string;
@@ -296,6 +299,7 @@ export type Database = {
           id: string;
           mode: string;
           note: string | null;
+          pomodoro_config: Json | null;
           source: string;
           started_at: string;
           updated_at: string;
@@ -309,6 +313,7 @@ export type Database = {
           id?: string;
           mode?: string;
           note?: string | null;
+          pomodoro_config?: Json | null;
           source?: string;
           started_at?: string;
           updated_at?: string;
@@ -321,6 +326,7 @@ export type Database = {
           id?: string;
           mode?: string;
           note?: string | null;
+          pomodoro_config?: Json | null;
           source?: string;
           started_at?: string;
           updated_at?: string;
@@ -409,6 +415,15 @@ export type Database = {
       [_ in never]: never;
     };
     Functions: {
+      apply_pomodoro: {
+        Args: {
+          p_close_open_at: string;
+          p_expected_pauses: number;
+          p_new_pauses: Json;
+          p_session_id: string;
+        };
+        Returns: undefined;
+      };
       create_goal: {
         Args: {
           p_area_id: string;
@@ -451,6 +466,7 @@ export type Database = {
           id: string;
           mode: string;
           note: string | null;
+          pomodoro_config: Json | null;
           source: string;
           started_at: string;
           updated_at: string;
@@ -474,6 +490,7 @@ export type Database = {
           period_start: string;
         }[];
       };
+      is_valid_pomodoro_config: { Args: { c: Json }; Returns: boolean };
       is_valid_timezone: { Args: { tz: string }; Returns: boolean };
     };
     Enums: {

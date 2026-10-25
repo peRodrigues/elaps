@@ -98,7 +98,9 @@ select throws_ok(
   '23514', null, 'modo de sessão desconhecido falha'
 );
 select lives_ok(
-  $$ update public.sessions set mode = 'pomodoro' where id = '1c000000-0000-4000-8000-000000000001' $$,
+  $$ update public.sessions set mode = 'pomodoro',
+       pomodoro_config = '{"pomodoro_focus_min": 25, "pomodoro_short_break_min": 5, "pomodoro_long_break_min": 15, "pomodoro_long_every": 4}'
+     where id = '1c000000-0000-4000-8000-000000000001' $$,
   'sessão em modo pomodoro grava'
 );
 

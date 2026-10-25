@@ -20,6 +20,7 @@ export function session(
     ended_at,
     source: 'timer',
     note: null,
+    mode: 'free',
     ...extra,
   };
 }

@@ -9,8 +9,7 @@ export type Theme = 'light' | 'dark' | 'system';
 
 /**
  * Padrões do pomodoro no perfil (v2). Faixas garantidas por CHECK no banco.
- * Em `Profile` ficam opcionais enquanto o app não lê essas colunas; o card
- * de pomodoro (V6) os torna obrigatórios ao passar a ler.
+ * A sessão de pomodoro guarda um retrato destes valores ao iniciar.
  */
 export interface PomodoroSettings {
   /** 1–180. */
@@ -23,7 +22,7 @@ export interface PomodoroSettings {
   pomodoro_long_every: number;
 }
 
-export interface Profile extends Partial<PomodoroSettings> {
+export interface Profile extends PomodoroSettings {
   id: string;
   /** Fuso IANA, ex.: `America/Sao_Paulo`. */
   timezone: string;
@@ -60,11 +59,12 @@ export interface Session {
   ended_at: IsoDateTime | null;
   source: SessionSource;
   note: string | null;
+  mode: SessionMode;
   /**
-   * Ausente = `'free'`. Opcional enquanto o app não lê a coluna; o card de
-   * pomodoro (V6) o torna obrigatório.
+   * Retrato da config ao iniciar um pomodoro (`null` no modo livre). As fases
+   * saem dele, não do perfil atual. Opcional: só o cronômetro lê a coluna.
    */
-  mode?: SessionMode;
+  pomodoro_config?: PomodoroSettings | null;
 }
 
 export interface SessionPause {
@@ -73,7 +73,14 @@ export interface SessionPause {
   paused_at: IsoDateTime;
   /** `null` = pausa em andamento. */
   resumed_at: IsoDateTime | null;
+  /**
+   * `'break'` = pausa de pomodoro (criada nas viradas de fase). Ausente =
+   * `'manual'`. Opcional: só o cronômetro lê a coluna.
+   */
+  kind?: PauseKind;
 }
+
+export type PauseKind = 'manual' | 'break';
 
 export type GoalTargetKind = 'total' | 'group' | 'area';
 /** Semana começa na segunda; dia, semana e mês no fuso do perfil. */

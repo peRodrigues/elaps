@@ -16,7 +16,7 @@ import { supabase } from '@/lib/supabase';
 // As chaves começam por ['sessions', 'dashboard'] para que cronômetro, sessões
 // e troca de fuso (que invalidam ['sessions']) atualizem a tela.
 
-const SESSION_COLUMNS = 'id, user_id, area_id, started_at, ended_at, source, note';
+const SESSION_COLUMNS = 'id, user_id, area_id, started_at, ended_at, source, note, mode';
 const PAGE = 1000;
 const PAUSE_CHUNK = 100;
 /** Histórico usado só para o streak. */
@@ -48,7 +48,11 @@ async function fetchTouching(
     if (error) throw error;
     // O banco garante 'timer' | 'manual' por CHECK; o tipo gerado diz string.
     sessions.push(
-      ...data.map((r): Session => ({ ...r, source: r.source === 'manual' ? 'manual' : 'timer' })),
+      ...data.map((r): Session => ({
+        ...r,
+        source: r.source === 'manual' ? 'manual' : 'timer',
+        mode: r.mode === 'pomodoro' ? 'pomodoro' : 'free',
+      })),
     );
     if (data.length < PAGE) break;
   }

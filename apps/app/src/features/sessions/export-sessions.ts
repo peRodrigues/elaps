@@ -27,7 +27,7 @@ async function fetchAll({ period, areaIds, tagIds }: ExportFilter) {
   const sessions: Session[] = [];
   const pauses: SessionPause[] = [];
   for (let from = 0; ; from += EXPORT_PAGE) {
-    const columns = 'id, user_id, area_id, started_at, ended_at, source, note';
+    const columns = 'id, user_id, area_id, started_at, ended_at, source, note, mode';
     let query = supabase
       .from('sessions')
       .select((withTags ? `${columns}, session_tags!inner(tag_id)` : columns) as typeof columns)
@@ -41,7 +41,7 @@ async function fetchAll({ period, areaIds, tagIds }: ExportFilter) {
       .range(from, from + EXPORT_PAGE - 1);
     if (error) throw new Error(error.message);
     const page = (data ?? []).map(
-      ({ id, user_id, area_id, started_at, ended_at, source, note }): Session => ({
+      ({ id, user_id, area_id, started_at, ended_at, source, note, mode }): Session => ({
         id,
         user_id,
         area_id,
@@ -49,6 +49,7 @@ async function fetchAll({ period, areaIds, tagIds }: ExportFilter) {
         ended_at,
         note,
         source: source === 'manual' ? 'manual' : 'timer',
+        mode: mode === 'pomodoro' ? 'pomodoro' : 'free',
       }),
     );
     sessions.push(...page);

@@ -5,7 +5,10 @@ import { supabase } from '@/lib/supabase';
 
 const THEMES: readonly Profile['theme'][] = ['light', 'dark', 'system'];
 
-/** Perfil do usuário logado (fuso IANA e tema). */
+const PROFILE_COLUMNS =
+  'id, timezone, theme, pomodoro_focus_min, pomodoro_short_break_min, pomodoro_long_break_min, pomodoro_long_every';
+
+/** Perfil do usuário logado (fuso IANA, tema e padrões do pomodoro). */
 export function useProfile() {
   const { user } = useAuth();
   return useQuery({
@@ -14,20 +17,20 @@ export function useProfile() {
     queryFn: async (): Promise<Profile> => {
       const { data, error } = await supabase
         .from('profiles')
-        .select('id, timezone, theme')
+        .select(PROFILE_COLUMNS)
         .eq('id', user!.id)
         .single();
       if (error) throw error;
       // O banco garante os valores por CHECK; o tipo gerado diz só string.
       const theme = THEMES.find((t) => t === data.theme) ?? 'system';
-      return { id: data.id, timezone: data.timezone, theme };
+      return { ...data, theme };
     },
   });
 }
 
-type ProfilePatch = Partial<Pick<Profile, 'timezone' | 'theme'>>;
+type ProfilePatch = Partial<Omit<Profile, 'id'>>;
 
-/** Altera fuso e/ou tema do perfil; a tela muda na hora e volta atrás se o banco recusar. */
+/** Altera fuso, tema e/ou pomodoro do perfil; a tela muda na hora e volta atrás se o banco recusar. */
 export function useUpdateProfile() {
   const { user } = useAuth();
   const queryClient = useQueryClient();

@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router';
 import { useTranslation } from 'react-i18next';
-import { Pause, Play, Square } from 'lucide-react';
+import { Pause, Play, SkipForward, Square } from 'lucide-react';
 import { toast } from 'sonner';
 import {
   applyTimerCommand,
@@ -30,9 +30,20 @@ import { useProfile } from '@/lib/profile';
 import { AreaPicker, ColorDot } from '@/features/timer/area-picker';
 import { areaLookup, pickerGroups } from '@/features/timer/catalog-lookup';
 import { ForgottenDialog } from '@/features/timer/forgotten-dialog';
+import { ModeToggle } from '@/features/timer/mode-toggle';
+import {
+  phaseLabel,
+  requestNotificationPermission,
+  usePomodoro,
+  useStoredMode,
+} from '@/features/timer/pomodoro';
 import { ShortSessionDialog, StopDialog } from '@/features/timer/stop-dialogs';
+import { TimerGoals } from '@/features/timer/timer-goals';
 import { formatClock, formatTime, useNow } from '@/features/timer/time';
 import { TodaySessions } from '@/features/timer/today-sessions';
+import { cn } from '@/lib/utils';
+
+const STOPPED: TimerState = { status: 'stopped' };
 
 /** Parar congela o instante do clique; o diálogo só decide o que gravar. */
 interface Stopping {
@@ -55,7 +66,9 @@ export function TimerPage() {
   const command = useTimerCommand();
   const discard = useDiscardSession();
   const adjust = useAdjustEnd();
-  const busy = command.isPending || discard.isPending || adjust.isPending;
+  const [mode, setMode] = useStoredMode();
+  const pomodoro = usePomodoro(timer.data ?? STOPPED, now);
+  const busy = command.isPending || discard.isPending || adjust.isPending || pomodoro.busy;
 
   const [selected, setSelected] = useState<string>();
   const [stopping, setStopping] = useState<Stopping | null>(null);
@@ -101,6 +114,7 @@ export function TimerPage() {
   }
 
   const state: TimerState = timer.data;
+  const phase = pomodoro.phase;
   const active = state.status === 'stopped' ? null : state;
   const activeInfo = active && lookup(active.session.area_id);
   const activeName = activeInfo ? `${activeInfo.group?.name ?? ''} › ${activeInfo.area.name}` : '';
@@ -115,9 +129,41 @@ export function TimerPage() {
   const run = (cmd: Parameters<typeof applyTimerCommand>[1], note?: string | null) =>
     command.mutateAsync({ state, command: cmd, at: Date.now(), note }).catch(onError);
 
-  function onStop() {
+  function onStart() {
+    if (!areaId || !user || !profile.data) return;
+    const p = profile.data;
+    if (mode === 'pomodoro') requestNotificationPermission();
+    command
+      .mutateAsync({
+        state,
+        command: { action: 'start', area_id: areaId, user_id: user.id },
+        at: Date.now(),
+        pomodoro:
+          mode === 'pomodoro'
+            ? {
+                pomodoro_focus_min: p.pomodoro_focus_min,
+                pomodoro_short_break_min: p.pomodoro_short_break_min,
+                pomodoro_long_break_min: p.pomodoro_long_break_min,
+                pomodoro_long_every: p.pomodoro_long_every,
+              }
+            : null,
+      })
+      .catch(onError);
+  }
+
+  async function onStop() {
     const at = Date.now();
-    const result = applyTimerCommand(state, { action: 'stop' }, at);
+    let current = state;
+    // Pomodoro: grava antes as viradas devidas, para o líquido sair certo.
+    if (pomodoro.pendingPlan) {
+      try {
+        await pomodoro.applyPlan(pomodoro.pendingPlan);
+      } catch {
+        // Conflito: outro aparelho gravou; o recarregamento abaixo traz o estado.
+      }
+      current = (await timer.refetch()).data ?? state;
+    }
+    const result = applyTimerCommand(current, { action: 'stop' }, at);
     if (!result.ok || result.effect.type !== 'end_session') {
       onError(new TimerConflictError('stop'));
       void timer.refetch();
@@ -173,21 +219,54 @@ export function TimerPage() {
                   <ColorDot color={activeInfo?.group?.color} />
                   <span className="truncate">{activeName}</span>
                 </span>
-                <Badge variant={active.status === 'paused' ? 'secondary' : 'default'}>
-                  {t(active.status === 'paused' ? 'timer.paused' : 'timer.running')}
-                </Badge>
+                {phase ? (
+                  <Badge
+                    variant={phase.kind === 'focus' && !phase.paused ? 'default' : 'secondary'}
+                  >
+                    {phaseLabel(phase, t)}
+                  </Badge>
+                ) : (
+                  <Badge variant={active.status === 'paused' ? 'secondary' : 'default'}>
+                    {t(active.status === 'paused' ? 'timer.paused' : 'timer.running')}
+                  </Badge>
+                )}
               </div>
-              <p
-                role="timer"
-                aria-live="off"
-                className={`text-center text-6xl font-semibold tabular-nums sm:text-7xl ${
-                  active.status === 'paused' ? 'text-muted-foreground' : ''
-                }`}
-              >
-                {formatClock(timerElapsedMs(state, now))}
-              </p>
+              {phase ? (
+                <div className="flex flex-col items-center gap-1">
+                  <p
+                    role="timer"
+                    aria-live="off"
+                    aria-label={t('pomodoro.remaining')}
+                    className={cn(
+                      'text-center text-6xl font-semibold tabular-nums sm:text-7xl',
+                      (phase.kind !== 'focus' || phase.paused) && 'text-muted-foreground',
+                    )}
+                  >
+                    {formatClock(phase.remaining_ms + 999)}
+                  </p>
+                  <p className="text-sm text-muted-foreground tabular-nums">
+                    {t('pomodoro.net', { time: formatClock(timerElapsedMs(state, now)) })}
+                  </p>
+                </div>
+              ) : (
+                <p
+                  role="timer"
+                  aria-live="off"
+                  className={cn(
+                    'text-center text-6xl font-semibold tabular-nums sm:text-7xl',
+                    active.status === 'paused' && 'text-muted-foreground',
+                  )}
+                >
+                  {formatClock(timerElapsedMs(state, now))}
+                </p>
+              )}
               <div className="grid grid-cols-2 gap-3">
-                {active.status === 'running' ? (
+                {phase && phase.kind !== 'focus' ? (
+                  // Na pausa do pomodoro, "retomar" é pular a pausa.
+                  <Button size="lg" variant="secondary" disabled={busy} onClick={pomodoro.skip}>
+                    <SkipForward /> {t('pomodoro.skip')}
+                  </Button>
+                ) : active.status === 'running' ? (
                   <Button
                     size="lg"
                     variant="secondary"
@@ -210,6 +289,11 @@ export function TimerPage() {
                   <Square /> {t('timer.stop')}
                 </Button>
               </div>
+              {phase?.kind === 'focus' && (
+                <Button variant="ghost" disabled={busy || phase.paused} onClick={pomodoro.skip}>
+                  <SkipForward /> {t('pomodoro.skip')}
+                </Button>
+              )}
             </>
           ) : options.length === 0 ? (
             <div className="flex flex-col items-start gap-3">
@@ -223,14 +307,23 @@ export function TimerPage() {
               <p className="text-center text-6xl font-semibold text-muted-foreground tabular-nums sm:text-7xl">
                 {formatClock(0)}
               </p>
+              <ModeToggle value={mode} onChange={setMode} />
+              {mode === 'pomodoro' && profile.data && (
+                <p className="-mt-3 text-center text-xs text-muted-foreground">
+                  {t('pomodoro.summary', {
+                    focus: profile.data.pomodoro_focus_min,
+                    short: profile.data.pomodoro_short_break_min,
+                    long: profile.data.pomodoro_long_break_min,
+                    every: profile.data.pomodoro_long_every,
+                  })}
+                </p>
+              )}
               <AreaPicker options={options} value={areaId} onChange={setSelected} />
               <Button
                 size="lg"
                 className="h-12 text-base"
                 disabled={busy || !areaId || !user}
-                onClick={() =>
-                  areaId && user && run({ action: 'start', area_id: areaId, user_id: user.id })
-                }
+                onClick={onStart}
               >
                 <Play /> {t('timer.start')}
               </Button>
@@ -238,6 +331,8 @@ export function TimerPage() {
           )}
         </CardContent>
       </Card>
+
+      <TimerGoals activeAreaId={active?.session.area_id} />
 
       {today.data && (
         <TodaySessions
